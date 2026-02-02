@@ -8,8 +8,8 @@ export interface DistributorSettings {
   postalCode: string;
   phone: string;
   email: string;
-  vatNumber: string;
-  siret: string;
+  vatNumber: string; // Format belge: BE0123456789
+  bceNumber: string; // Numéro d'entreprise BCE/KBO
   printerIp: string;
   printerPort: number;
 }
@@ -87,7 +87,7 @@ export const DEFAULT_SETTINGS: DistributorSettings = {
   phone: '',
   email: '',
   vatNumber: '',
-  siret: '',
+  bceNumber: '',
   printerIp: '192.168.1.100',
   printerPort: 9100,
 };
