@@ -110,7 +110,7 @@ export function LabelPreview({ product, settings, productionDate, dlcDate }: Lab
         )}
         {settings.phone && <p>Tél : {settings.phone}</p>}
         <div className="flex gap-2 flex-wrap">
-          {settings.siret && <span>SIRET : {settings.siret}</span>}
+          {settings.bceNumber && <span>BCE : {settings.bceNumber}</span>}
           {settings.vatNumber && <span>TVA : {settings.vatNumber}</span>}
         </div>
       </div>

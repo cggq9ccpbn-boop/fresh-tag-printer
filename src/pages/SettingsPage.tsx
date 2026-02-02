@@ -121,7 +121,7 @@ export default function SettingsPage() {
               <Label htmlFor="address">Adresse</Label>
               <Input
                 id="address"
-                placeholder="123 rue de la Paix"
+                placeholder="Rue de la Loi 1"
                 value={settings.address}
                 onChange={(e) => updateSettings({ address: e.target.value })}
               />
@@ -130,7 +130,7 @@ export default function SettingsPage() {
               <Label htmlFor="postalCode">Code postal</Label>
               <Input
                 id="postalCode"
-                placeholder="75001"
+                placeholder="1000"
                 value={settings.postalCode}
                 onChange={(e) => updateSettings({ postalCode: e.target.value })}
               />
@@ -139,7 +139,7 @@ export default function SettingsPage() {
               <Label htmlFor="city">Ville</Label>
               <Input
                 id="city"
-                placeholder="Paris"
+                placeholder="Bruxelles"
                 value={settings.city}
                 onChange={(e) => updateSettings({ city: e.target.value })}
               />
@@ -167,7 +167,7 @@ export default function SettingsPage() {
               <Label htmlFor="phone">Téléphone</Label>
               <Input
                 id="phone"
-                placeholder="01 23 45 67 89"
+                placeholder="+32 2 123 45 67"
                 value={settings.phone}
                 onChange={(e) => updateSettings({ phone: e.target.value })}
               />
@@ -177,7 +177,7 @@ export default function SettingsPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="contact@societe.fr"
+                placeholder="contact@societe.be"
                 value={settings.email}
                 onChange={(e) => updateSettings({ email: e.target.value })}
               />
@@ -202,19 +202,19 @@ export default function SettingsPage() {
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div className="space-y-2">
-              <Label htmlFor="siret">SIRET</Label>
+              <Label htmlFor="bceNumber">N° d'entreprise (BCE)</Label>
               <Input
-                id="siret"
-                placeholder="123 456 789 00012"
-                value={settings.siret}
-                onChange={(e) => updateSettings({ siret: e.target.value })}
+                id="bceNumber"
+                placeholder="0123.456.789"
+                value={settings.bceNumber}
+                onChange={(e) => updateSettings({ bceNumber: e.target.value })}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="vatNumber">Numéro de TVA</Label>
               <Input
                 id="vatNumber"
-                placeholder="FR12345678901"
+                placeholder="BE0123456789"
                 value={settings.vatNumber}
                 onChange={(e) => updateSettings({ vatNumber: e.target.value })}
               />
