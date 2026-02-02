@@ -1,17 +1,17 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
-import { MobileNav } from './MobileNav';
+import { BottomNav } from './BottomNav';
 
 export function Layout() {
   return (
     <div className="min-h-screen bg-background">
-      <MobileNav />
       <Sidebar />
-      <main className="pt-16 lg:pt-0 lg:pl-64">
-        <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+      <main className="lg:pl-64">
+        <div className="min-h-screen p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
           <Outlet />
         </div>
       </main>
+      <BottomNav />
     </div>
   );
 }
