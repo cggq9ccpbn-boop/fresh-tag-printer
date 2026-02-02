@@ -95,23 +95,23 @@ export default function PrintPage() {
 
   if (!isConfigured()) {
     return (
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
             Impression
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             Gérez votre file d'impression
           </p>
         </div>
 
         <Card className="border-amber-200 bg-amber-50/50">
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="h-16 w-16 rounded-2xl bg-amber-100 flex items-center justify-center mb-4">
-              <AlertCircle className="h-8 w-8 text-amber-600" />
+          <CardContent className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
+            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-amber-100 flex items-center justify-center mb-4">
+              <AlertCircle className="h-7 w-7 sm:h-8 sm:w-8 text-amber-600" />
             </div>
-            <h3 className="text-lg font-medium text-amber-900">Configuration requise</h3>
-            <p className="text-amber-700 text-center mt-1 max-w-md">
+            <h3 className="text-base sm:text-lg font-medium text-amber-900 text-center">Configuration requise</h3>
+            <p className="text-amber-700 text-center mt-1 max-w-md text-sm sm:text-base">
               Veuillez configurer les informations de votre distributeur avant de pouvoir imprimer des étiquettes.
             </p>
             <Link to="/settings">
@@ -126,25 +126,25 @@ export default function PrintPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
             Impression
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             {queue.length === 0
               ? 'Sélectionnez un produit pour créer une étiquette'
               : `${queue.length} produit(s) en file • ${getQueueCount()} étiquette(s)`}
           </p>
         </div>
         {queue.length > 0 && (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setClearDialogOpen(true)}>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setClearDialogOpen(true)} className="w-full sm:w-auto">
               Vider la file
             </Button>
-            <Button onClick={handlePrint}>
+            <Button onClick={handlePrint} className="w-full sm:w-auto">
               <Printer className="mr-2 h-4 w-4" />
               Imprimer ({getQueueCount()})
             </Button>
@@ -152,10 +152,10 @@ export default function PrintPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         {/* Sélection de produit */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Sélectionner un produit</h2>
+          <h2 className="text-lg sm:text-xl font-semibold">Sélectionner un produit</h2>
           
           {products.length === 0 ? (
             <Card>
@@ -171,7 +171,7 @@ export default function PrintPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-2 max-h-[60vh] overflow-y-auto pr-2">
+            <div className="grid gap-2 max-h-[50vh] sm:max-h-[60vh] overflow-y-auto pr-2">
               {products.map((product) => (
                 <Card
                   key={product.id}
@@ -208,67 +208,71 @@ export default function PrintPage() {
 
         {/* File d'impression */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">File d'impression</h2>
+          <h2 className="text-lg sm:text-xl font-semibold">File d'impression</h2>
           
           {queue.length === 0 ? (
             <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
-                  <Printer className="h-8 w-8 text-muted-foreground" />
+              <CardContent className="flex flex-col items-center justify-center py-10 sm:py-12">
+                <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                  <Printer className="h-7 w-7 sm:h-8 sm:w-8 text-muted-foreground" />
                 </div>
-                <p className="text-muted-foreground text-center">
+                <p className="text-muted-foreground text-center text-sm sm:text-base">
                   La file d'impression est vide
                 </p>
-                <p className="text-sm text-muted-foreground text-center mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground text-center mt-1">
                   Sélectionnez un produit pour l'ajouter
                 </p>
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
+            <div className="space-y-2 max-h-[50vh] sm:max-h-[60vh] overflow-y-auto pr-2">
               {queue.map((item) => {
                 const product = getProduct(item.productId);
                 if (!product) return null;
 
                 return (
                   <Card key={item.id} className="hover:shadow-sm transition-shadow">
-                    <CardContent className="flex items-center gap-4 py-3">
-                      {product.photo ? (
-                        <img
-                          src={product.photo}
-                          alt={product.name}
-                          className="h-12 w-12 object-cover rounded-lg"
-                        />
-                      ) : (
-                        <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
-                          <span className="text-xl">{getCategoryIcon(product.category)}</span>
+                    <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 py-3">
+                      <div className="flex items-center gap-3 w-full sm:w-auto sm:flex-1">
+                        {product.photo ? (
+                          <img
+                            src={product.photo}
+                            alt={product.name}
+                            className="h-12 w-12 object-cover rounded-lg flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                            <span className="text-xl">{getCategoryIcon(product.category)}</span>
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">{product.name}</h3>
+                          <p className="text-xs text-muted-foreground">
+                            Prod: {format(new Date(item.productionDate), 'dd/MM/yyyy', { locale: fr })}
+                            {' • '}
+                            DLC: {format(new Date(item.dlcDate), 'dd/MM/yyyy', { locale: fr })}
+                          </p>
                         </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium truncate">{product.name}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          Prod: {format(new Date(item.productionDate), 'dd/MM/yyyy', { locale: fr })}
-                          {' • '}
-                          DLC: {format(new Date(item.dlcDate), 'dd/MM/yyyy', { locale: fr })}
-                        </p>
                       </div>
-                      <Badge variant="secondary">{item.quantity}×</Badge>
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handlePreview(item)}
-                        >
-                          Aperçu
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => handleRemoveFromQueue(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                        <Badge variant="secondary">{item.quantity}×</Badge>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handlePreview(item)}
+                          >
+                            Aperçu
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => handleRemoveFromQueue(item.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -283,10 +287,10 @@ export default function PrintPage() {
       {previewItem && (
         <Card>
           <CardHeader>
-            <CardTitle>Aperçu de l'étiquette</CardTitle>
-            <CardDescription>Format 80mm</CardDescription>
+            <CardTitle className="text-base sm:text-lg">Aperçu de l'étiquette</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">Format 80mm</CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center">
+          <CardContent className="flex justify-center overflow-x-auto py-4">
             <LabelPreview
               product={previewItem.product}
               settings={settings}
