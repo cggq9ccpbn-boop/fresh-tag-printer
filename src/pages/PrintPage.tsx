@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useProducts } from '@/hooks/useProducts';
 import { usePrintQueue } from '@/hooks/usePrintQueue';
 import { useSettings } from '@/hooks/useSettings';
-import { Product, CATEGORIES } from '@/types';
+import { useCategories } from '@/hooks/useCategories';
+import { Product } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,7 @@ export default function PrintPage() {
   const { products, getProduct } = useProducts();
   const { queue, removeFromQueue, clearQueue, getQueueCount } = usePrintQueue();
   const { settings, isConfigured } = useSettings();
+  const { getCategory } = useCategories();
   const [printDialogOpen, setPrintDialogOpen] = useState(false);
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -38,7 +40,7 @@ export default function PrintPage() {
   } | null>(null);
 
   const getCategoryIcon = (categoryId: string) => {
-    return CATEGORIES.find((c) => c.id === categoryId)?.icon || '📦';
+    return getCategory(categoryId)?.icon || '📦';
   };
 
   const handleSelectProduct = (product: Product) => {

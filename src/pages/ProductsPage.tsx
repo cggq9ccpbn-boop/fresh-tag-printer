@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useProducts } from '@/hooks/useProducts';
-import { Product, CATEGORIES, ALLERGENS, CategoryId } from '@/types';
+import { useCategories } from '@/hooks/useCategories';
+import { Product, ALLERGENS, CategoryId } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit2, Trash2, Package } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Package, Settings2 } from 'lucide-react';
 import { ProductDialog } from '@/components/products/ProductDialog';
+import { CategoryDialog } from '@/components/products/CategoryDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,9 +23,11 @@ import { toast } from 'sonner';
 
 export default function ProductsPage() {
   const { products, deleteProduct } = useProducts();
+  const { categories, getCategory } = useCategories();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryId | 'all'>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
@@ -35,11 +39,11 @@ export default function ProductsPage() {
   });
 
   const getCategoryLabel = (categoryId: CategoryId) => {
-    return CATEGORIES.find((c) => c.id === categoryId)?.label || categoryId;
+    return getCategory(categoryId)?.label || categoryId;
   };
 
   const getCategoryIcon = (categoryId: CategoryId) => {
-    return CATEGORIES.find((c) => c.id === categoryId)?.icon || '📦';
+    return getCategory(categoryId)?.icon || '📦';
   };
 
   const handleEdit = (product: Product) => {
@@ -95,7 +99,7 @@ export default function ProductsPage() {
             className="pl-10"
           />
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap items-center">
           <Button
             variant={selectedCategory === 'all' ? 'default' : 'outline'}
             size="sm"
@@ -103,7 +107,7 @@ export default function ProductsPage() {
           >
             Tous
           </Button>
-          {CATEGORIES.map((category) => (
+          {categories.map((category) => (
             <Button
               key={category.id}
               variant={selectedCategory === category.id ? 'default' : 'outline'}
@@ -114,6 +118,15 @@ export default function ProductsPage() {
               <span className="hidden sm:inline">{category.icon} </span>{category.label}
             </Button>
           ))}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setCategoryDialogOpen(true)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Settings2 className="h-4 w-4 mr-1" />
+            <span className="hidden sm:inline">Gérer</span>
+          </Button>
         </div>
       </div>
 
@@ -218,6 +231,12 @@ export default function ProductsPage() {
         open={dialogOpen}
         onOpenChange={handleDialogClose}
         product={editingProduct}
+      />
+
+      {/* Dialog gestion des catégories */}
+      <CategoryDialog
+        open={categoryDialogOpen}
+        onOpenChange={setCategoryDialogOpen}
       />
 
       {/* Dialog de confirmation de suppression */}

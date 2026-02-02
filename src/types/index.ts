@@ -33,7 +33,13 @@ export const ALLERGENS = [
 
 export type AllergenId = typeof ALLERGENS[number]['id'];
 
-export const CATEGORIES = [
+export interface Category {
+  id: string;
+  label: string;
+  icon: string;
+}
+
+export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'sandwiches', label: 'Sandwichs', icon: '🥪' },
   { id: 'salads', label: 'Salades', icon: '🥗' },
   { id: 'drinks', label: 'Boissons', icon: '🥤' },
@@ -43,9 +49,9 @@ export const CATEGORIES = [
   { id: 'fruits', label: 'Fruits', icon: '🍎' },
   { id: 'dairy', label: 'Produits laitiers', icon: '🧀' },
   { id: 'other', label: 'Autres', icon: '📦' },
-] as const;
+];
 
-export type CategoryId = typeof CATEGORIES[number]['id'];
+export type CategoryId = string;
 
 export interface Product {
   id: string;
