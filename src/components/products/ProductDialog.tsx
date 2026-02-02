@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useProducts } from '@/hooks/useProducts';
-import { Product, CATEGORIES, ALLERGENS, CategoryId, AllergenId } from '@/types';
+import { useCategories } from '@/hooks/useCategories';
+import { Product, ALLERGENS, CategoryId, AllergenId } from '@/types';
 import {
   Dialog,
   DialogContent,
@@ -33,6 +34,7 @@ interface ProductDialogProps {
 
 export function ProductDialog({ open, onOpenChange, product }: ProductDialogProps) {
   const { addProduct, updateProduct } = useProducts();
+  const { categories } = useCategories();
   const isEditing = !!product;
 
   const [formData, setFormData] = useState({
@@ -201,7 +203,7 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
                   <SelectValue placeholder="Sélectionner une catégorie" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.map((category) => (
+                  {categories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.icon} {category.label}
                     </SelectItem>
