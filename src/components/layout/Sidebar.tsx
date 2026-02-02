@@ -16,7 +16,7 @@ export function Sidebar() {
   const queueCount = getQueueCount();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border">
+    <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border hidden lg:block">
       <div className="flex h-16 items-center gap-3 px-6 border-b border-border">
         <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
           <span className="text-primary-foreground font-bold text-sm">🏷️</span>

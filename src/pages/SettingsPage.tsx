@@ -42,27 +42,27 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-4xl">
+    <div className="space-y-6 sm:space-y-8 max-w-4xl">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
           Paramètres
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-muted-foreground mt-1 text-sm sm:text-base">
           Configurez les informations de votre distributeur
         </p>
       </div>
 
       {/* Informations société */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-4 sm:pb-6">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Building2 className="h-5 w-5 text-primary" />
+            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             </div>
             <div>
-              <CardTitle>Informations société</CardTitle>
-              <CardDescription>Les informations affichées sur vos étiquettes</CardDescription>
+              <CardTitle className="text-base sm:text-lg">Informations société</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Les informations affichées sur vos étiquettes</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -70,7 +70,7 @@ export default function SettingsPage() {
           {/* Logo */}
           <div className="space-y-2">
             <Label>Logo</Label>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               {logoPreview ? (
                 <div className="relative">
                   <img
@@ -86,7 +86,7 @@ export default function SettingsPage() {
                   </button>
                 </div>
               ) : (
-                <label className="h-20 w-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-accent transition-colors">
+                <label className="h-20 w-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-accent transition-colors flex-shrink-0">
                   <Upload className="h-6 w-6 text-muted-foreground" />
                   <span className="text-xs text-muted-foreground mt-1">Ajouter</span>
                   <input
@@ -107,7 +107,7 @@ export default function SettingsPage() {
           <Separator />
 
           {/* Nom et adresse */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div className="space-y-2">
               <Label htmlFor="companyName">Nom de la société</Label>
               <Input
@@ -150,19 +150,19 @@ export default function SettingsPage() {
 
       {/* Coordonnées */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-4 sm:pb-6">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Phone className="h-5 w-5 text-primary" />
+            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             </div>
             <div>
-              <CardTitle>Coordonnées</CardTitle>
-              <CardDescription>Comment vous contacter</CardDescription>
+              <CardTitle className="text-base sm:text-lg">Coordonnées</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Comment vous contacter</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div className="space-y-2">
               <Label htmlFor="phone">Téléphone</Label>
               <Input
@@ -188,19 +188,19 @@ export default function SettingsPage() {
 
       {/* Informations légales */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-4 sm:pb-6">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <FileText className="h-5 w-5 text-primary" />
+            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             </div>
             <div>
-              <CardTitle>Informations légales</CardTitle>
-              <CardDescription>Numéros d'identification</CardDescription>
+              <CardTitle className="text-base sm:text-lg">Informations légales</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Numéros d'identification</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div className="space-y-2">
               <Label htmlFor="siret">SIRET</Label>
               <Input
@@ -225,19 +225,19 @@ export default function SettingsPage() {
 
       {/* Configuration imprimante */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-4 sm:pb-6">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Printer className="h-5 w-5 text-primary" />
+            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Printer className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             </div>
             <div>
-              <CardTitle>Imprimante thermique</CardTitle>
-              <CardDescription>Connexion TCP/IP à l'imprimante</CardDescription>
+              <CardTitle className="text-base sm:text-lg">Imprimante thermique</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Connexion TCP/IP à l'imprimante</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div className="space-y-2">
               <Label htmlFor="printerIp">Adresse IP</Label>
               <Input
@@ -262,8 +262,8 @@ export default function SettingsPage() {
       </Card>
 
       {/* Bouton de sauvegarde */}
-      <div className="flex justify-end">
-        <Button size="lg" onClick={handleSave}>
+      <div className="flex justify-end pb-4">
+        <Button size="lg" onClick={handleSave} className="w-full sm:w-auto">
           <Save className="mr-2 h-4 w-4" />
           Sauvegarder
         </Button>
