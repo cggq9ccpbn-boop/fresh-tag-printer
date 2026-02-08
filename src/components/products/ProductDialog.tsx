@@ -40,7 +40,6 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
   const [formData, setFormData] = useState({
     name: '',
     photo: null as string | null,
-    price: 0,
     category: 'other' as CategoryId,
     allergens: [] as AllergenId[],
     shelfLifeDays: 0,
@@ -53,7 +52,6 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
       setFormData({
         name: product.name,
         photo: product.photo,
-        price: product.price,
         category: product.category,
         allergens: product.allergens,
         shelfLifeDays: product.shelfLifeDays,
@@ -64,7 +62,6 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
       setFormData({
         name: '',
         photo: null,
-        price: 0,
         category: 'other',
         allergens: [],
         shelfLifeDays: 0,
@@ -102,11 +99,6 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
   const handleSubmit = () => {
     if (!formData.name.trim()) {
       toast.error('Le nom du produit est requis');
-      return;
-    }
-
-    if (formData.price <= 0) {
-      toast.error('Le prix doit être supérieur à 0');
       return;
     }
 
@@ -167,29 +159,15 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
               </div>
             </div>
 
-            {/* Nom et prix */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nom du produit *</Label>
-                <Input
-                  id="name"
-                  placeholder="Ex: Sandwich jambon-beurre"
-                  value={formData.name}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="price">Prix (€) *</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  value={formData.price || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                />
-              </div>
+            {/* Nom */}
+            <div className="space-y-2">
+              <Label htmlFor="name">Nom du produit *</Label>
+              <Input
+                id="name"
+                placeholder="Ex: Sandwich jambon-beurre"
+                value={formData.name}
+                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+              />
             </div>
 
             {/* Catégorie */}

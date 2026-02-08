@@ -194,9 +194,6 @@ export default function PrintPage() {
                     )}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium truncate">{product.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {product.price.toFixed(2)} €
-                      </p>
                     </div>
                     <Button size="sm" variant="ghost">
                       <Plus className="h-4 w-4" />
