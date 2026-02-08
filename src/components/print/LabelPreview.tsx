@@ -63,9 +63,6 @@ export function LabelPreview({ product, settings, productionDate, dlcDate }: Lab
         )}
         <div className="flex-1">
           <h2 className="font-bold text-sm leading-tight">{product.name}</h2>
-          <p className="text-base font-bold text-primary mt-1">
-            {product.price.toFixed(2)} €
-          </p>
         </div>
       </div>
 

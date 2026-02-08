@@ -6,7 +6,6 @@ interface SupabaseProduct {
   id: string;
   name: string;
   photo: string | null;
-  price: number;
   category_id: string | null;
   allergens: string[];
   shelf_life_days: number;
@@ -23,7 +22,6 @@ function mapSupabaseToProduct(sp: SupabaseProduct): Product {
     id: sp.id,
     name: sp.name,
     photo: sp.photo,
-    price: sp.price,
     category: sp.category_id || 'other',
     allergens: sp.allergens as AllergenId[],
     shelfLifeDays: sp.shelf_life_days,
@@ -69,7 +67,6 @@ export function useProducts() {
       .insert({
         name: product.name,
         photo: product.photo,
-        price: product.price,
         category_id: product.category === 'other' ? null : product.category,
         allergens: product.allergens,
         shelf_life_days: product.shelfLifeDays,
@@ -95,7 +92,6 @@ export function useProducts() {
     
     if (updates.name !== undefined) updateData.name = updates.name;
     if (updates.photo !== undefined) updateData.photo = updates.photo;
-    if (updates.price !== undefined) updateData.price = updates.price;
     if (updates.category !== undefined) updateData.category_id = updates.category === 'other' ? null : updates.category;
     if (updates.allergens !== undefined) updateData.allergens = updates.allergens;
     if (updates.shelfLifeDays !== undefined) updateData.shelf_life_days = updates.shelfLifeDays;

@@ -187,9 +187,6 @@ export default function ProductsPage() {
                       {getCategoryIcon(product.category)} {getCategoryLabel(product.category)}
                     </p>
                   </div>
-                  <span className="text-lg font-bold text-primary">
-                    {product.price.toFixed(2)} €
-                  </span>
                 </div>
 
                 {/* Allergènes */}

@@ -57,7 +57,6 @@ export interface Product {
   id: string;
   name: string;
   photo: string | null;
-  price: number;
   category: CategoryId;
   allergens: AllergenId[];
   shelfLifeDays: number; // Durée de conservation en jours
