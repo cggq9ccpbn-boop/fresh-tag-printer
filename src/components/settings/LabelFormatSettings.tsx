@@ -133,6 +133,70 @@ export function LabelFormatSettings({ settings, onUpdate }: LabelFormatSettingsP
           ))}
         </div>
       </div>
+
+      {/* Échelle et décalage du contenu */}
+      <div className="space-y-4">
+        <Label className="text-sm font-medium flex items-center gap-2">
+          <ZoomIn className="h-4 w-4" />
+          Échelle du contenu
+        </Label>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs text-muted-foreground">Zoom</Label>
+            <span className="text-xs font-mono text-muted-foreground">{settings.contentScale ?? 100}%</span>
+          </div>
+          <Slider
+            value={[settings.contentScale ?? 100]}
+            onValueChange={([v]) => onUpdate({ contentScale: v })}
+            min={50}
+            max={150}
+            step={1}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <Label className="text-sm font-medium flex items-center gap-2">
+          <Move className="h-4 w-4" />
+          Décalage du contenu
+        </Label>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">Horizontal (mm)</Label>
+              <span className="text-xs font-mono text-muted-foreground">{settings.contentOffsetX ?? 0}</span>
+            </div>
+            <Slider
+              value={[settings.contentOffsetX ?? 0]}
+              onValueChange={([v]) => onUpdate({ contentOffsetX: v })}
+              min={-20}
+              max={20}
+              step={0.5}
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">Vertical (mm)</Label>
+              <span className="text-xs font-mono text-muted-foreground">{settings.contentOffsetY ?? 0}</span>
+            </div>
+            <Slider
+              value={[settings.contentOffsetY ?? 0]}
+              onValueChange={([v]) => onUpdate({ contentOffsetY: v })}
+              min={-20}
+              max={20}
+              step={0.5}
+            />
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onUpdate({ contentScale: 100, contentOffsetX: 0, contentOffsetY: 0 })}
+          className="text-xs"
+        >
+          Réinitialiser position
+        </Button>
+      </div>
     </div>
   );
 }

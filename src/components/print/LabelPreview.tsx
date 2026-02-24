@@ -129,6 +129,7 @@ export function LabelPreview({ product, settings, productionDate, dlcDate }: Lab
           {settings.vatNumber && <span>TVA : {settings.vatNumber}</span>}
         </div>
       </div>
+      </div>
     </div>
   );
 }

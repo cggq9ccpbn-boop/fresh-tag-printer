@@ -58,26 +58,26 @@ export function generateZpl({ product, settings, productionDate, dlcDate }: ZplO
   lines.push(`^LL${labelHeightDots}`);
   
   // Company name
-  lines.push(`^FO20,${y}^A0N,${titleFont.h},${titleFont.w}${fb()}^FD${settings.companyName || 'Société'}^FS`);
+  lines.push(`^FO${ox(0)},${oy(y)}^A0N,${sf(titleFont.h)},${sf(titleFont.w)}${fb()}^FD${settings.companyName || 'Société'}^FS`);
   y += titleFont.h + 10;
   
   // Separator
-  lines.push(`^FO20,${y}^GB${labelWidthDots - 40},1,1^FS`);
+  lines.push(`^FO${ox(0)},${oy(y)}^GB${sf(labelWidthDots - 40)},1,1^FS`);
   y += 15;
   
   // Product name
-  lines.push(`^FO20,${y}^A0N,${titleFont.h},${titleFont.w}${fb()}^FD${product.name}^FS`);
+  lines.push(`^FO${ox(0)},${oy(y)}^A0N,${sf(titleFont.h)},${sf(titleFont.w)}${fb()}^FD${product.name}^FS`);
   y += titleFont.h + 15;
   
   // Production date
   const prodDateStr = format(productionDate, 'dd/MM/yyyy', { locale: fr });
-  lines.push(`^FO20,${y}^A0N,${bodyFont.h},${bodyFont.w}${fb()}^FDFabriqué le : ${prodDateStr}^FS`);
+  lines.push(`^FO${ox(0)},${oy(y)}^A0N,${sf(bodyFont.h)},${sf(bodyFont.w)}${fb()}^FDFabriqué le : ${prodDateStr}^FS`);
   y += bodyFont.h + 5;
   
   // DLC/DDM date
   const dlcDateStr = format(dlcDate, 'dd/MM/yyyy', { locale: fr });
   const dlcLabel = product.dlcType === 'dlc' ? 'A consommer avant le' : 'A consommer de pref. avant le';
-  lines.push(`^FO20,${y}^A0N,${bodyFont.h},${bodyFont.w}${fb()}^FD${dlcLabel} : ${dlcDateStr}^FS`);
+  lines.push(`^FO${ox(0)},${oy(y)}^A0N,${sf(bodyFont.h)},${sf(bodyFont.w)}${fb()}^FD${dlcLabel} : ${dlcDateStr}^FS`);
   y += bodyFont.h + 15;
   
   // Allergens
@@ -87,35 +87,35 @@ export function generateZpl({ product, settings, productionDate, dlcDate }: ZplO
       .filter(Boolean)
       .join(', ');
     
-    lines.push(`^FO20,${y}^A0N,${bodyFont.h},${bodyFont.w}${fb()}^FDALLERGENES :^FS`);
+    lines.push(`^FO${ox(0)},${oy(y)}^A0N,${sf(bodyFont.h)},${sf(bodyFont.w)}${fb()}^FDALLERGENES :^FS`);
     y += bodyFont.h + 3;
-    lines.push(`^FO20,${y}^A0N,${legalFont.h},${legalFont.w}${fb(3)}^FD${allergenLabels}^FS`);
+    lines.push(`^FO${ox(0)},${oy(y)}^A0N,${sf(legalFont.h)},${sf(legalFont.w)}${fb(3)}^FD${allergenLabels}^FS`);
     y += legalFont.h * 2 + 10;
   }
   
   // Separator
-  lines.push(`^FO20,${y}^GB${labelWidthDots - 40},1,1^FS`);
+  lines.push(`^FO${ox(0)},${oy(y)}^GB${sf(labelWidthDots - 40)},1,1^FS`);
   y += 10;
   
   // Legal info
   if (settings.address || settings.city) {
     const addr = [settings.address, `${settings.postalCode} ${settings.city}`].filter(Boolean).join(' - ');
-    lines.push(`^FO20,${y}^A0N,${legalFont.h},${legalFont.w}${fb(2)}^FD${addr}^FS`);
+    lines.push(`^FO${ox(0)},${oy(y)}^A0N,${sf(legalFont.h)},${sf(legalFont.w)}${fb(2)}^FD${addr}^FS`);
     y += legalFont.h + 3;
   }
   
   if (settings.phone) {
-    lines.push(`^FO20,${y}^A0N,${legalFont.h},${legalFont.w}${fb()}^FDTel : ${settings.phone}^FS`);
+    lines.push(`^FO${ox(0)},${oy(y)}^A0N,${sf(legalFont.h)},${sf(legalFont.w)}${fb()}^FDTel : ${settings.phone}^FS`);
     y += legalFont.h + 3;
   }
   
   if (settings.bceNumber) {
-    lines.push(`^FO20,${y}^A0N,${legalFont.h},${legalFont.w}${fb()}^FDBCE : ${settings.bceNumber}^FS`);
+    lines.push(`^FO${ox(0)},${oy(y)}^A0N,${sf(legalFont.h)},${sf(legalFont.w)}${fb()}^FDBCE : ${settings.bceNumber}^FS`);
     y += legalFont.h + 3;
   }
   
   if (settings.vatNumber) {
-    lines.push(`^FO20,${y}^A0N,${legalFont.h},${legalFont.w}${fb()}^FDTVA : ${settings.vatNumber}^FS`);
+    lines.push(`^FO${ox(0)},${oy(y)}^A0N,${sf(legalFont.h)},${sf(legalFont.w)}${fb()}^FDTVA : ${settings.vatNumber}^FS`);
   }
   
   // End label

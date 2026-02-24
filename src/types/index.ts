@@ -111,4 +111,7 @@ export const DEFAULT_SETTINGS: DistributorSettings = {
   fontSizeBody: 10,
   fontSizeLegal: 8,
   textAlign: 'left',
+  contentScale: 100,
+  contentOffsetX: 0,
+  contentOffsetY: 0,
 };
