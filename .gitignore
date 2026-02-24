@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Electron build output
+electron-dist/
+electron/node_modules/
+
+# Electron binaries
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.msi
