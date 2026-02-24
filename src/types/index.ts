@@ -8,10 +8,17 @@ export interface DistributorSettings {
   postalCode: string;
   phone: string;
   email: string;
-  vatNumber: string; // Format belge: BE0123456789
-  bceNumber: string; // Numéro d'entreprise BCE/KBO
+  vatNumber: string;
+  bceNumber: string;
   printerIp: string;
   printerPort: number;
+  // Label customization
+  labelWidth: number;
+  labelHeight: number;
+  fontSizeTitle: number;
+  fontSizeBody: number;
+  fontSizeLegal: number;
+  textAlign: 'left' | 'center' | 'right';
 }
 
 export const ALLERGENS = [
@@ -59,9 +66,9 @@ export interface Product {
   photo: string | null;
   category: CategoryId;
   allergens: AllergenId[];
-  shelfLifeDays: number; // Durée de conservation en jours
-  shelfLifeHours: number; // Durée de conservation en heures
-  dlcType: 'dlc' | 'ddm'; // DLC ou DDM (Date Durabilité Minimale)
+  shelfLifeDays: number;
+  shelfLifeHours: number;
+  dlcType: 'dlc' | 'ddm';
   createdAt: string;
   updatedAt: string;
 }
@@ -95,4 +102,10 @@ export const DEFAULT_SETTINGS: DistributorSettings = {
   bceNumber: '',
   printerIp: '192.168.1.100',
   printerPort: 9100,
+  labelWidth: 50,
+  labelHeight: 80,
+  fontSizeTitle: 14,
+  fontSizeBody: 10,
+  fontSizeLegal: 8,
+  textAlign: 'left',
 };
