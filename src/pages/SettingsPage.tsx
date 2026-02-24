@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Building2, Phone, FileText, Printer, Upload, X, Save, Sparkles, Tag } from 'lucide-react';
+import { Building2, Phone, FileText, Printer, Upload, X, Save, Sparkles, Tag, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { PrinterScanner } from '@/components/settings/PrinterScanner';
 import { LabelFormatSettings } from '@/components/settings/LabelFormatSettings';
+import { LabelPreview } from '@/components/print/LabelPreview';
+import { Product } from '@/types';
 
 export default function SettingsPage() {
   const { settings, updateSettings } = useSettings();
