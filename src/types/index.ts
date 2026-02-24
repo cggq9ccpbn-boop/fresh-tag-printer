@@ -119,4 +119,8 @@ export const DEFAULT_SETTINGS: DistributorSettings = {
   contentScale: 100,
   contentOffsetX: 0,
   contentOffsetY: 0,
+  marginTop: 2,
+  marginBottom: 2,
+  marginLeft: 2,
+  marginRight: 2,
 };

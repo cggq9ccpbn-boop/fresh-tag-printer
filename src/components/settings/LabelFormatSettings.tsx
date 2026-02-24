@@ -3,7 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { AlignLeft, AlignCenter, AlignRight, Move, ZoomIn } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, Move, ZoomIn, Box } from 'lucide-react';
 
 interface LabelFormatSettingsProps {
   settings: DistributorSettings;
@@ -61,51 +61,95 @@ export function LabelFormatSettings({ settings, onUpdate }: LabelFormatSettingsP
         </div>
       </div>
 
+      {/* Marges / Bordures */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium flex items-center gap-2">
+          <Box className="h-4 w-4" />
+          Marges d'impression (mm)
+        </Label>
+        <p className="text-xs text-muted-foreground">
+          Zone de bordure entre le bord de l'étiquette collante et le contenu imprimé
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">Haut</Label>
+              <span className="text-xs font-mono text-muted-foreground">{settings.marginTop ?? 2} mm</span>
+            </div>
+            <Slider
+              value={[settings.marginTop ?? 2]}
+              onValueChange={([v]) => onUpdate({ marginTop: v })}
+              min={0}
+              max={15}
+              step={0.5}
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">Bas</Label>
+              <span className="text-xs font-mono text-muted-foreground">{settings.marginBottom ?? 2} mm</span>
+            </div>
+            <Slider
+              value={[settings.marginBottom ?? 2]}
+              onValueChange={([v]) => onUpdate({ marginBottom: v })}
+              min={0}
+              max={15}
+              step={0.5}
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">Gauche</Label>
+              <span className="text-xs font-mono text-muted-foreground">{settings.marginLeft ?? 2} mm</span>
+            </div>
+            <Slider
+              value={[settings.marginLeft ?? 2]}
+              onValueChange={([v]) => onUpdate({ marginLeft: v })}
+              min={0}
+              max={15}
+              step={0.5}
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">Droite</Label>
+              <span className="text-xs font-mono text-muted-foreground">{settings.marginRight ?? 2} mm</span>
+            </div>
+            <Slider
+              value={[settings.marginRight ?? 2]}
+              onValueChange={([v]) => onUpdate({ marginRight: v })}
+              min={0}
+              max={15}
+              step={0.5}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Tailles de texte */}
       <div className="space-y-4">
         <Label className="text-sm font-medium">Tailles de texte</Label>
-        
         <div className="space-y-3">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-xs text-muted-foreground">Titre</Label>
               <span className="text-xs font-mono text-muted-foreground">{settings.fontSizeTitle}px</span>
             </div>
-            <Slider
-              value={[settings.fontSizeTitle]}
-              onValueChange={([v]) => onUpdate({ fontSizeTitle: v })}
-              min={8}
-              max={24}
-              step={1}
-            />
+            <Slider value={[settings.fontSizeTitle]} onValueChange={([v]) => onUpdate({ fontSizeTitle: v })} min={8} max={24} step={1} />
           </div>
-          
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-xs text-muted-foreground">Corps</Label>
               <span className="text-xs font-mono text-muted-foreground">{settings.fontSizeBody}px</span>
             </div>
-            <Slider
-              value={[settings.fontSizeBody]}
-              onValueChange={([v]) => onUpdate({ fontSizeBody: v })}
-              min={6}
-              max={18}
-              step={1}
-            />
+            <Slider value={[settings.fontSizeBody]} onValueChange={([v]) => onUpdate({ fontSizeBody: v })} min={6} max={18} step={1} />
           </div>
-          
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-xs text-muted-foreground">Mentions légales</Label>
               <span className="text-xs font-mono text-muted-foreground">{settings.fontSizeLegal}px</span>
             </div>
-            <Slider
-              value={[settings.fontSizeLegal]}
-              onValueChange={([v]) => onUpdate({ fontSizeLegal: v })}
-              min={5}
-              max={14}
-              step={1}
-            />
+            <Slider value={[settings.fontSizeLegal]} onValueChange={([v]) => onUpdate({ fontSizeLegal: v })} min={5} max={14} step={1} />
           </div>
         </div>
       </div>
@@ -134,7 +178,7 @@ export function LabelFormatSettings({ settings, onUpdate }: LabelFormatSettingsP
         </div>
       </div>
 
-      {/* Échelle et décalage du contenu */}
+      {/* Échelle du contenu */}
       <div className="space-y-4">
         <Label className="text-sm font-medium flex items-center gap-2">
           <ZoomIn className="h-4 w-4" />
@@ -145,16 +189,11 @@ export function LabelFormatSettings({ settings, onUpdate }: LabelFormatSettingsP
             <Label className="text-xs text-muted-foreground">Zoom</Label>
             <span className="text-xs font-mono text-muted-foreground">{settings.contentScale ?? 100}%</span>
           </div>
-          <Slider
-            value={[settings.contentScale ?? 100]}
-            onValueChange={([v]) => onUpdate({ contentScale: v })}
-            min={50}
-            max={150}
-            step={1}
-          />
+          <Slider value={[settings.contentScale ?? 100]} onValueChange={([v]) => onUpdate({ contentScale: v })} min={50} max={150} step={1} />
         </div>
       </div>
 
+      {/* Décalage du contenu */}
       <div className="space-y-4">
         <Label className="text-sm font-medium flex items-center gap-2">
           <Move className="h-4 w-4" />
@@ -166,26 +205,14 @@ export function LabelFormatSettings({ settings, onUpdate }: LabelFormatSettingsP
               <Label className="text-xs text-muted-foreground">Horizontal (mm)</Label>
               <span className="text-xs font-mono text-muted-foreground">{settings.contentOffsetX ?? 0}</span>
             </div>
-            <Slider
-              value={[settings.contentOffsetX ?? 0]}
-              onValueChange={([v]) => onUpdate({ contentOffsetX: v })}
-              min={-20}
-              max={20}
-              step={0.5}
-            />
+            <Slider value={[settings.contentOffsetX ?? 0]} onValueChange={([v]) => onUpdate({ contentOffsetX: v })} min={-20} max={20} step={0.5} />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-xs text-muted-foreground">Vertical (mm)</Label>
               <span className="text-xs font-mono text-muted-foreground">{settings.contentOffsetY ?? 0}</span>
             </div>
-            <Slider
-              value={[settings.contentOffsetY ?? 0]}
-              onValueChange={([v]) => onUpdate({ contentOffsetY: v })}
-              min={-20}
-              max={20}
-              step={0.5}
-            />
+            <Slider value={[settings.contentOffsetY ?? 0]} onValueChange={([v]) => onUpdate({ contentOffsetY: v })} min={-20} max={20} step={0.5} />
           </div>
         </div>
         <Button
