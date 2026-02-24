@@ -1,12 +1,16 @@
 // Native printing utilities for desktop (Electron) and mobile (Capacitor)
-// This file provides cross-platform TCP printing capabilities
 
 import { Capacitor } from '@capacitor/core';
 
-// Types pour l'API Electron
+interface PrinterInfo {
+  ip: string;
+  port: number;
+}
+
 interface ElectronAPI {
   printTcp: (options: { ip: string; port: number; data: string }) => Promise<{ success: boolean }>;
   testPrinterConnection: (options: { ip: string; port: number }) => Promise<{ connected: boolean }>;
+  scanNetwork: (options: { port?: number; timeout?: number }) => Promise<{ printers: PrinterInfo[]; subnet: string }>;
   platform: string;
   isElectron: boolean;
 }
@@ -17,30 +21,18 @@ declare global {
   }
 }
 
-/**
- * Check if we're running in Electron
- */
 export const isElectron = (): boolean => {
   return typeof window !== 'undefined' && !!window.electronAPI?.isElectron;
 };
 
-/**
- * Check if we're running in a native Capacitor app
- */
 export const isCapacitor = (): boolean => {
   return Capacitor.isNativePlatform();
 };
 
-/**
- * Check if native TCP printing is available
- */
 export const canPrintNatively = (): boolean => {
   return isElectron() || isCapacitor();
 };
 
-/**
- * Get the current platform name
- */
 export const getPlatform = (): 'electron' | 'ios' | 'android' | 'web' => {
   if (isElectron()) return 'electron';
   if (isCapacitor()) {
@@ -50,15 +42,29 @@ export const getPlatform = (): 'electron' | 'ios' | 'android' | 'web' => {
 };
 
 /**
+ * Scan the local network for printers on the given port
+ */
+export const scanForPrinters = async (
+  port: number = 9100
+): Promise<{ printers: PrinterInfo[]; subnet: string }> => {
+  if (isElectron()) {
+    try {
+      return await window.electronAPI!.scanNetwork({ port, timeout: 1000 });
+    } catch (error) {
+      return { printers: [], subnet: '' };
+    }
+  }
+  return { printers: [], subnet: '' };
+};
+
+/**
  * Print data directly to a thermal printer via TCP
- * Works in Electron desktop app and Capacitor mobile apps
  */
 export const printViaTcp = async (
   ip: string,
   port: number,
   data: string
 ): Promise<{ success: boolean; error?: string }> => {
-  // Electron
   if (isElectron()) {
     try {
       const result = await window.electronAPI!.printTcp({ ip, port, data });
@@ -68,12 +74,11 @@ export const printViaTcp = async (
     }
   }
 
-  // Capacitor (iOS/Android)
   if (isCapacitor()) {
     try {
       const { SocketConnect } = await import('capacitor-tcp-connect');
       const result = await SocketConnect.open({
-        ip: ip,
+        ip,
         port: String(port),
         text: data,
       });
@@ -96,7 +101,6 @@ export const testPrinterConnection = async (
   ip: string,
   port: number
 ): Promise<{ success: boolean; error?: string }> => {
-  // Electron
   if (isElectron()) {
     try {
       const result = await window.electronAPI!.testPrinterConnection({ ip, port });
@@ -106,12 +110,11 @@ export const testPrinterConnection = async (
     }
   }
 
-  // Capacitor - try sending empty data as connection test
   if (isCapacitor()) {
     try {
       const { SocketConnect } = await import('capacitor-tcp-connect');
       const result = await SocketConnect.open({
-        ip: ip,
+        ip,
         port: String(port),
         text: '',
       });

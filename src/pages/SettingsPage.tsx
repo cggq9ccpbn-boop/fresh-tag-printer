@@ -5,8 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Building2, Phone, FileText, Printer, Upload, X, Save, Sparkles } from 'lucide-react';
+import { Building2, Phone, FileText, Printer, Upload, X, Save, Sparkles, Tag } from 'lucide-react';
 import { toast } from 'sonner';
+import { PrinterScanner } from '@/components/settings/PrinterScanner';
+import { LabelFormatSettings } from '@/components/settings/LabelFormatSettings';
 
 export default function SettingsPage() {
   const { settings, updateSettings } = useSettings();
@@ -252,34 +254,34 @@ export default function SettingsPage() {
             </div>
             <div>
               <CardTitle className="text-lg sm:text-xl">Imprimante thermique</CardTitle>
-              <CardDescription className="text-sm">Connexion TCP/IP à l'imprimante 80mm</CardDescription>
+              <CardDescription className="text-sm">Connexion TCP/IP — scannez le réseau ou entrez l'IP manuellement</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div className="space-y-2">
-              <Label htmlFor="printerIp" className="text-sm font-medium">Adresse IP</Label>
-              <Input
-                id="printerIp"
-                placeholder="192.168.1.100"
-                value={settings.printerIp}
-                onChange={(e) => updateSettings({ printerIp: e.target.value })}
-                className="h-11 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-mono"
-              />
+          <PrinterScanner
+            printerIp={settings.printerIp}
+            printerPort={settings.printerPort}
+            onSelect={(ip, port) => updateSettings({ printerIp: ip, printerPort: port })}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Format d'étiquette */}
+      <Card className="border-0 shadow-lg shadow-primary/5 bg-gradient-to-br from-card to-card/80 backdrop-blur">
+        <CardHeader className="pb-6">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-teal-500/25">
+              <Tag className="h-6 w-6 text-white" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="printerPort" className="text-sm font-medium">Port</Label>
-              <Input
-                id="printerPort"
-                type="number"
-                placeholder="9100"
-                value={settings.printerPort}
-                onChange={(e) => updateSettings({ printerPort: parseInt(e.target.value) || 9100 })}
-                className="h-11 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-mono"
-              />
+            <div>
+              <CardTitle className="text-lg sm:text-xl">Format d'étiquette</CardTitle>
+              <CardDescription className="text-sm">Taille, polices et alignement du contenu</CardDescription>
             </div>
           </div>
+        </CardHeader>
+        <CardContent>
+          <LabelFormatSettings settings={settings} onUpdate={updateSettings} />
         </CardContent>
       </Card>
 
