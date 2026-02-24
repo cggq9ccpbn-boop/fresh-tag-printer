@@ -18,18 +18,26 @@ export function LabelPreview({ product, settings, productionDate, dlcDate }: Lab
       .join(', ');
   };
 
+  const align = settings.textAlign || 'left';
+  const titleSize = settings.fontSizeTitle || 14;
+  const bodySize = settings.fontSizeBody || 10;
+  const legalSize = settings.fontSizeLegal || 8;
+  const labelW = settings.labelWidth || 50;
+  const labelH = settings.labelHeight || 80;
+
   return (
     <div
       className="bg-white border-2 border-dashed border-border rounded-lg p-4 font-sans text-foreground"
       style={{
-        width: '80mm',
-        minHeight: '60mm',
-        fontSize: '10px',
+        width: `${labelW}mm`,
+        minHeight: `${labelH}mm`,
+        fontSize: `${bodySize}px`,
         lineHeight: '1.4',
+        textAlign: align,
       }}
     >
       {/* En-tête avec logo et nom */}
-      <div className="flex items-center gap-3 border-b border-border pb-2 mb-2">
+      <div className="flex items-center gap-3 border-b border-border pb-2 mb-2" style={{ justifyContent: align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start' }}>
         {settings.logo ? (
           <img
             src={settings.logo}
@@ -37,37 +45,37 @@ export function LabelPreview({ product, settings, productionDate, dlcDate }: Lab
             className="h-10 w-10 object-contain"
           />
         ) : (
-          <div className="h-10 w-10 bg-muted rounded flex items-center justify-center text-lg">
+          <div className="h-10 w-10 bg-muted rounded flex items-center justify-center text-lg flex-shrink-0">
             🏪
           </div>
         )}
-        <div className="flex-1 min-w-0">
-          <h1 className="font-bold text-sm truncate">
+        <div className="min-w-0">
+          <h1 className="font-bold truncate" style={{ fontSize: `${titleSize}px` }}>
             {settings.companyName || 'Nom de la société'}
           </h1>
         </div>
       </div>
 
       {/* Produit */}
-      <div className="flex gap-2 mb-3">
+      <div className="flex gap-2 mb-3" style={{ justifyContent: align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start' }}>
         {product.photo ? (
           <img
             src={product.photo}
             alt={product.name}
-            className="h-12 w-12 object-cover rounded"
+            className="h-12 w-12 object-cover rounded flex-shrink-0"
           />
         ) : (
-          <div className="h-12 w-12 bg-muted rounded flex items-center justify-center text-xl">
+          <div className="h-12 w-12 bg-muted rounded flex items-center justify-center text-xl flex-shrink-0">
             📦
           </div>
         )}
-        <div className="flex-1">
-          <h2 className="font-bold text-sm leading-tight">{product.name}</h2>
+        <div>
+          <h2 className="font-bold leading-tight" style={{ fontSize: `${titleSize}px` }}>{product.name}</h2>
         </div>
       </div>
 
       {/* Dates */}
-      <div className="bg-muted/50 rounded p-2 mb-2 text-xs">
+      <div className="bg-muted/50 rounded p-2 mb-2" style={{ fontSize: `${bodySize}px` }}>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Fabriqué le :</span>
           <span className="font-medium">
@@ -89,15 +97,15 @@ export function LabelPreview({ product, settings, productionDate, dlcDate }: Lab
       {/* Allergènes */}
       {product.allergens.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded p-2 mb-2">
-          <p className="font-bold text-amber-900 text-xs mb-0.5">⚠️ ALLERGÈNES :</p>
-          <p className="text-amber-800 text-xs leading-tight">
+          <p className="font-bold text-amber-900 mb-0.5" style={{ fontSize: `${bodySize}px` }}>⚠️ ALLERGÈNES :</p>
+          <p className="text-amber-800 leading-tight" style={{ fontSize: `${legalSize}px` }}>
             {getAllergenLabels()}
           </p>
         </div>
       )}
 
       {/* Informations légales */}
-      <div className="text-[8px] text-muted-foreground border-t border-border pt-2 space-y-0.5">
+      <div className="text-muted-foreground border-t border-border pt-2 space-y-0.5" style={{ fontSize: `${legalSize}px` }}>
         {(settings.address || settings.city) && (
           <p>
             {settings.address}
@@ -106,7 +114,7 @@ export function LabelPreview({ product, settings, productionDate, dlcDate }: Lab
           </p>
         )}
         {settings.phone && <p>Tél : {settings.phone}</p>}
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap" style={{ justifyContent: align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start' }}>
           {settings.bceNumber && <span>BCE : {settings.bceNumber}</span>}
           {settings.vatNumber && <span>TVA : {settings.vatNumber}</span>}
         </div>

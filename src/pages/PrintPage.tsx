@@ -24,6 +24,8 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
+import { canPrintNatively, printViaTcp } from '@/lib/electron';
+import { generateZpl, zplToBase64 } from '@/lib/zpl';
 
 export default function PrintPage() {
   const { products, getProduct } = useProducts();
@@ -38,6 +40,7 @@ export default function PrintPage() {
     productionDate: Date;
     dlcDate: Date;
   } | null>(null);
+  const [printing, setPrinting] = useState(false);
 
   const getCategoryIcon = (categoryId: string) => {
     return getCategory(categoryId)?.icon || '📦';
@@ -59,18 +62,48 @@ export default function PrintPage() {
       return;
     }
 
-    // Simulation d'impression TCP
-    toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 2000)),
-      {
-        loading: `Impression de ${getQueueCount()} étiquette(s)...`,
-        success: () => {
-          clearQueue();
-          return 'Impression terminée avec succès !';
-        },
-        error: 'Erreur lors de l\'impression',
+    if (!canPrintNatively()) {
+      toast.error('L\'impression nécessite l\'application desktop (Windows) ou iPad. Sur le web, l\'impression TCP n\'est pas possible.');
+      return;
+    }
+
+    setPrinting(true);
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const item of queue) {
+      const product = getProduct(item.productId);
+      if (!product) continue;
+
+      const zpl = generateZpl({
+        product,
+        settings,
+        productionDate: new Date(item.productionDate),
+        dlcDate: new Date(item.dlcDate),
+      });
+
+      const data = zplToBase64(zpl);
+
+      for (let i = 0; i < item.quantity; i++) {
+        const result = await printViaTcp(settings.printerIp, settings.printerPort, data);
+        if (result.success) {
+          successCount++;
+        } else {
+          errorCount++;
+          toast.error(`Erreur impression: ${result.error}`);
+          break;
+        }
       }
-    );
+
+      if (errorCount > 0) break;
+    }
+
+    setPrinting(false);
+
+    if (errorCount === 0) {
+      clearQueue();
+      toast.success(`${successCount} étiquette(s) imprimée(s) avec succès !`);
+    }
   };
 
   const handleRemoveFromQueue = (id: string) => {
@@ -140,15 +173,20 @@ export default function PrintPage() {
               ? 'Sélectionnez un produit pour créer une étiquette'
               : `${queue.length} produit(s) en file • ${getQueueCount()} étiquette(s)`}
           </p>
+          {!canPrintNatively() && (
+            <p className="text-xs text-amber-600 mt-1">
+              ⚠️ Impression TCP disponible uniquement dans l'app desktop/iPad
+            </p>
+          )}
         </div>
         {queue.length > 0 && (
           <div className="flex flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setClearDialogOpen(true)} className="w-full sm:w-auto">
               Vider la file
             </Button>
-            <Button onClick={handlePrint} className="w-full sm:w-auto">
+            <Button onClick={handlePrint} disabled={printing} className="w-full sm:w-auto">
               <Printer className="mr-2 h-4 w-4" />
-              Imprimer ({getQueueCount()})
+              {printing ? 'Impression...' : `Imprimer (${getQueueCount()})`}
             </Button>
           </div>
         )}
@@ -287,7 +325,9 @@ export default function PrintPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base sm:text-lg">Aperçu de l'étiquette</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Format 80mm</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
+              Format {settings.labelWidth || 50}mm × {settings.labelHeight || 80}mm
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center overflow-x-auto py-4">
             <LabelPreview
