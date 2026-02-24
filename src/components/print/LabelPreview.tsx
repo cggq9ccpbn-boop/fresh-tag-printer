@@ -24,18 +24,28 @@ export function LabelPreview({ product, settings, productionDate, dlcDate }: Lab
   const legalSize = settings.fontSizeLegal || 8;
   const labelW = settings.labelWidth || 50;
   const labelH = settings.labelHeight || 80;
+  const scale = (settings.contentScale ?? 100) / 100;
+  const offsetX = settings.contentOffsetX ?? 0;
+  const offsetY = settings.contentOffsetY ?? 0;
 
   return (
     <div
-      className="bg-white border-2 border-dashed border-border rounded-lg p-4 font-sans text-foreground"
+      className="bg-white border-2 border-dashed border-border rounded-lg overflow-hidden font-sans text-foreground"
       style={{
         width: `${labelW}mm`,
         minHeight: `${labelH}mm`,
-        fontSize: `${bodySize}px`,
-        lineHeight: '1.4',
-        textAlign: align,
       }}
     >
+      <div
+        style={{
+          transform: `scale(${scale}) translate(${offsetX}mm, ${offsetY}mm)`,
+          transformOrigin: 'top left',
+          padding: '1rem',
+          fontSize: `${bodySize}px`,
+          lineHeight: '1.4',
+          textAlign: align,
+        }}
+      >
       {/* En-tête avec logo et nom */}
       <div className="flex items-center gap-3 border-b border-border pb-2 mb-2" style={{ justifyContent: align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start' }}>
         {settings.logo ? (
@@ -118,6 +128,7 @@ export function LabelPreview({ product, settings, productionDate, dlcDate }: Lab
           {settings.bceNumber && <span>BCE : {settings.bceNumber}</span>}
           {settings.vatNumber && <span>TVA : {settings.vatNumber}</span>}
         </div>
+      </div>
       </div>
     </div>
   );
