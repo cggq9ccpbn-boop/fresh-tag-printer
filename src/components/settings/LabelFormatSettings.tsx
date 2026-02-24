@@ -3,7 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, Move, ZoomIn } from 'lucide-react';
 
 interface LabelFormatSettingsProps {
   settings: DistributorSettings;
