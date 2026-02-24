@@ -16,6 +16,22 @@ export default function SettingsPage() {
   const { settings, updateSettings } = useSettings();
   const [logoPreview, setLogoPreview] = useState<string | null>(settings.logo);
 
+  // Produit fictif pour l'aperçu en direct
+  const sampleProduct: Product = {
+    id: 'preview',
+    name: settings.companyName ? 'Sandwich Poulet Curry' : 'Produit exemple',
+    photo: null,
+    category: 'sandwiches',
+    allergens: ['gluten', 'milk', 'eggs'],
+    shelfLifeDays: 3,
+    shelfLifeHours: 0,
+    dlcType: 'dlc',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  const sampleProductionDate = new Date();
+  const sampleDlcDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
