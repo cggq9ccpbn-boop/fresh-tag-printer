@@ -41,7 +41,15 @@ export function generateZpl({ product, settings, productionDate, dlcDate }: ZplO
     return `^FB${labelWidthDots - 40},${lines},0,${align}`;
   };
 
-  let y = 20;
+  const scale = (settings.contentScale ?? 100) / 100;
+  const offsetXDots = Math.round((settings.contentOffsetX ?? 0) * 8);
+  const offsetYDots = Math.round((settings.contentOffsetY ?? 0) * 8);
+  
+  const ox = (v: number) => Math.round(v * scale) + 20 + offsetXDots;
+  const oy = (v: number) => Math.round(v * scale) + offsetYDots;
+  const sf = (v: number) => Math.round(v * scale);
+
+  let y = 0;
   const lines: string[] = [];
   
   // Start label
