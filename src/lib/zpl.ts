@@ -44,9 +44,11 @@ export function generateZpl({ product, settings, productionDate, dlcDate }: ZplO
   const scale = (settings.contentScale ?? 100) / 100;
   const offsetXDots = Math.round((settings.contentOffsetX ?? 0) * 8);
   const offsetYDots = Math.round((settings.contentOffsetY ?? 0) * 8);
+  const marginTopDots = Math.round((settings.marginTop ?? 2) * 8);
+  const marginLeftDots = Math.round((settings.marginLeft ?? 2) * 8);
   
-  const ox = (v: number) => Math.round(v * scale) + 20 + offsetXDots;
-  const oy = (v: number) => Math.round(v * scale) + offsetYDots;
+  const ox = (v: number) => Math.round(v * scale) + marginLeftDots + offsetXDots;
+  const oy = (v: number) => Math.round(v * scale) + marginTopDots + offsetYDots;
   const sf = (v: number) => Math.round(v * scale);
 
   let y = 0;

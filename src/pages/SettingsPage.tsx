@@ -5,14 +5,32 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Building2, Phone, FileText, Printer, Upload, X, Save, Sparkles, Tag } from 'lucide-react';
+import { Building2, Phone, FileText, Printer, Upload, X, Save, Sparkles, Tag, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { PrinterScanner } from '@/components/settings/PrinterScanner';
 import { LabelFormatSettings } from '@/components/settings/LabelFormatSettings';
+import { LabelPreview } from '@/components/print/LabelPreview';
+import { Product } from '@/types';
 
 export default function SettingsPage() {
   const { settings, updateSettings } = useSettings();
   const [logoPreview, setLogoPreview] = useState<string | null>(settings.logo);
+
+  // Produit fictif pour l'aperçu en direct
+  const sampleProduct: Product = {
+    id: 'preview',
+    name: settings.companyName ? 'Sandwich Poulet Curry' : 'Produit exemple',
+    photo: null,
+    category: 'sandwiches',
+    allergens: ['gluten', 'milk', 'eggs'],
+    shelfLifeDays: 3,
+    shelfLifeHours: 0,
+    dlcType: 'dlc',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  const sampleProductionDate = new Date();
+  const sampleDlcDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -267,7 +285,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Format d'étiquette */}
+      {/* Format d'étiquette + Aperçu en direct */}
       <Card className="border-0 shadow-lg shadow-primary/5 bg-gradient-to-br from-card to-card/80 backdrop-blur">
         <CardHeader className="pb-6">
           <div className="flex items-center gap-4">
@@ -276,12 +294,34 @@ export default function SettingsPage() {
             </div>
             <div>
               <CardTitle className="text-lg sm:text-xl">Format d'étiquette</CardTitle>
-              <CardDescription className="text-sm">Taille, polices et alignement du contenu</CardDescription>
+              <CardDescription className="text-sm">Taille, marges, polices et alignement — aperçu en temps réel</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <LabelFormatSettings settings={settings} onUpdate={updateSettings} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Contrôles */}
+            <LabelFormatSettings settings={settings} onUpdate={updateSettings} />
+            
+            {/* Aperçu en direct */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Eye className="h-4 w-4" />
+                Aperçu en direct
+              </Label>
+              <div className="flex items-start justify-center p-4 bg-muted/30 rounded-xl border border-border/50 min-h-[200px] overflow-auto">
+                <LabelPreview
+                  product={sampleProduct}
+                  settings={settings}
+                  productionDate={sampleProductionDate}
+                  dlcDate={sampleDlcDate}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                Les modifications sont appliquées en temps réel
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

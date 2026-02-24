@@ -27,6 +27,12 @@ export function LabelPreview({ product, settings, productionDate, dlcDate }: Lab
   const scale = (settings.contentScale ?? 100) / 100;
   const offsetX = settings.contentOffsetX ?? 0;
   const offsetY = settings.contentOffsetY ?? 0;
+  const mt = settings.marginTop ?? 2;
+  const mb = settings.marginBottom ?? 2;
+  const ml = settings.marginLeft ?? 2;
+  const mr = settings.marginRight ?? 2;
+
+  const justifyContent = align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start';
 
   return (
     <div
@@ -34,30 +40,27 @@ export function LabelPreview({ product, settings, productionDate, dlcDate }: Lab
       style={{
         width: `${labelW}mm`,
         minHeight: `${labelH}mm`,
+        paddingTop: `${mt}mm`,
+        paddingBottom: `${mb}mm`,
+        paddingLeft: `${ml}mm`,
+        paddingRight: `${mr}mm`,
       }}
     >
       <div
         style={{
           transform: `scale(${scale}) translate(${offsetX}mm, ${offsetY}mm)`,
           transformOrigin: 'top left',
-          padding: '1rem',
           fontSize: `${bodySize}px`,
           lineHeight: '1.4',
           textAlign: align,
         }}
       >
       {/* En-tête avec logo et nom */}
-      <div className="flex items-center gap-3 border-b border-border pb-2 mb-2" style={{ justifyContent: align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start' }}>
+      <div className="flex items-center gap-3 border-b border-border pb-2 mb-2" style={{ justifyContent }}>
         {settings.logo ? (
-          <img
-            src={settings.logo}
-            alt="Logo"
-            className="h-10 w-10 object-contain"
-          />
+          <img src={settings.logo} alt="Logo" className="h-10 w-10 object-contain" />
         ) : (
-          <div className="h-10 w-10 bg-muted rounded flex items-center justify-center text-lg flex-shrink-0">
-            🏪
-          </div>
+          <div className="h-10 w-10 bg-muted rounded flex items-center justify-center text-lg flex-shrink-0">🏪</div>
         )}
         <div className="min-w-0">
           <h1 className="font-bold truncate" style={{ fontSize: `${titleSize}px` }}>
@@ -67,17 +70,11 @@ export function LabelPreview({ product, settings, productionDate, dlcDate }: Lab
       </div>
 
       {/* Produit */}
-      <div className="flex gap-2 mb-3" style={{ justifyContent: align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start' }}>
+      <div className="flex gap-2 mb-3" style={{ justifyContent }}>
         {product.photo ? (
-          <img
-            src={product.photo}
-            alt={product.name}
-            className="h-12 w-12 object-cover rounded flex-shrink-0"
-          />
+          <img src={product.photo} alt={product.name} className="h-12 w-12 object-cover rounded flex-shrink-0" />
         ) : (
-          <div className="h-12 w-12 bg-muted rounded flex items-center justify-center text-xl flex-shrink-0">
-            📦
-          </div>
+          <div className="h-12 w-12 bg-muted rounded flex items-center justify-center text-xl flex-shrink-0">📦</div>
         )}
         <div>
           <h2 className="font-bold leading-tight" style={{ fontSize: `${titleSize}px` }}>{product.name}</h2>
@@ -88,19 +85,13 @@ export function LabelPreview({ product, settings, productionDate, dlcDate }: Lab
       <div className="bg-muted/50 rounded p-2 mb-2" style={{ fontSize: `${bodySize}px` }}>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Fabriqué le :</span>
-          <span className="font-medium">
-            {format(productionDate, 'dd/MM/yyyy', { locale: fr })}
-          </span>
+          <span className="font-medium">{format(productionDate, 'dd/MM/yyyy', { locale: fr })}</span>
         </div>
         <div className="flex justify-between mt-1">
           <span className="text-muted-foreground">
-            {product.dlcType === 'dlc' 
-              ? 'À consommer avant le :' 
-              : 'À consommer de préf. avant le :'}
+            {product.dlcType === 'dlc' ? 'À consommer avant le :' : 'À consommer de préf. avant le :'}
           </span>
-          <span className="font-bold text-destructive">
-            {format(dlcDate, 'dd/MM/yyyy', { locale: fr })}
-          </span>
+          <span className="font-bold text-destructive">{format(dlcDate, 'dd/MM/yyyy', { locale: fr })}</span>
         </div>
       </div>
 
@@ -108,9 +99,7 @@ export function LabelPreview({ product, settings, productionDate, dlcDate }: Lab
       {product.allergens.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded p-2 mb-2">
           <p className="font-bold text-amber-900 mb-0.5" style={{ fontSize: `${bodySize}px` }}>⚠️ ALLERGÈNES :</p>
-          <p className="text-amber-800 leading-tight" style={{ fontSize: `${legalSize}px` }}>
-            {getAllergenLabels()}
-          </p>
+          <p className="text-amber-800 leading-tight" style={{ fontSize: `${legalSize}px` }}>{getAllergenLabels()}</p>
         </div>
       )}
 
@@ -124,7 +113,7 @@ export function LabelPreview({ product, settings, productionDate, dlcDate }: Lab
           </p>
         )}
         {settings.phone && <p>Tél : {settings.phone}</p>}
-        <div className="flex gap-2 flex-wrap" style={{ justifyContent: align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start' }}>
+        <div className="flex gap-2 flex-wrap" style={{ justifyContent }}>
           {settings.bceNumber && <span>BCE : {settings.bceNumber}</span>}
           {settings.vatNumber && <span>TVA : {settings.vatNumber}</span>}
         </div>

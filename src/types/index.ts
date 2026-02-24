@@ -22,6 +22,11 @@ export interface DistributorSettings {
   contentScale: number;
   contentOffsetX: number;
   contentOffsetY: number;
+  // Margins (for sticker labels with gaps)
+  marginTop: number;
+  marginBottom: number;
+  marginLeft: number;
+  marginRight: number;
 }
 
 export const ALLERGENS = [
@@ -114,4 +119,8 @@ export const DEFAULT_SETTINGS: DistributorSettings = {
   contentScale: 100,
   contentOffsetX: 0,
   contentOffsetY: 0,
+  marginTop: 2,
+  marginBottom: 2,
+  marginLeft: 2,
+  marginRight: 2,
 };
