@@ -19,6 +19,9 @@ export interface DistributorSettings {
   fontSizeBody: number;
   fontSizeLegal: number;
   textAlign: 'left' | 'center' | 'right';
+  contentScale: number;
+  contentOffsetX: number;
+  contentOffsetY: number;
 }
 
 export const ALLERGENS = [
