@@ -1,13 +1,31 @@
 # Application Mobile Capacitor (iOS/Android)
 
-Cette documentation explique comment compiler et exécuter l'application mobile native.
+## 🚀 Démarrage rapide (Mac + Xcode)
 
-## Prérequis
+Après avoir cloné le projet depuis GitHub, exécutez simplement :
+
+```bash
+chmod +x setup-ios.sh
+./setup-ios.sh
+```
+
+Ce script installe tout, génère le dossier `ios/`, et ouvre Xcode automatiquement.
+
+Dans Xcode :
+1. Sélectionnez votre **Team** (Signing & Capabilities)
+2. Branchez votre iPhone/iPad en USB
+3. Cliquez **▶️ Run**
+
+---
+
+## Installation manuelle
+
+### Prérequis
 
 - **iOS** : Mac avec Xcode installé (disponible sur l'App Store)
 - **Android** : Android Studio installé
 
-## Installation
+### Étapes
 
 1. **Cloner le projet depuis GitHub**
    ```bash
@@ -22,52 +40,24 @@ Cette documentation explique comment compiler et exécuter l'application mobile 
 
 3. **Ajouter les plateformes natives**
    ```bash
-   # Pour iOS
    npx cap add ios
-   
-   # Pour Android
    npx cap add android
    ```
 
-4. **Mettre à jour les dépendances natives**
-   ```bash
-   npx cap update ios
-   npx cap update android
-   ```
-
-5. **Builder l'application web**
+4. **Builder l'application web**
    ```bash
    npm run build
    ```
 
-6. **Synchroniser avec les projets natifs**
+5. **Synchroniser avec les projets natifs**
    ```bash
    npx cap sync
    ```
 
-## Lancement
-
-### iOS (iPad/iPhone)
-
-```bash
-npx cap run ios
-```
-
-Ou ouvrir directement dans Xcode :
-```bash
-npx cap open ios
-```
-
-### Android
-
-```bash
-npx cap run android
-```
-
-Ou ouvrir dans Android Studio :
-```bash
-npx cap open android
-```
+6. **Ouvrir dans Xcode**
+   ```bash
+   npx cap open ios
+   ```
 
 ## Impression TCP
 
@@ -78,12 +68,6 @@ L'application utilise le plugin `capacitor-tcp-connect` pour imprimer directemen
 1. Aller dans **Paramètres** dans l'application
 2. Configurer l'adresse IP de l'imprimante (ex: `192.168.1.100`)
 3. Configurer le port (par défaut : `9100`)
-
-### Test d'impression
-
-1. Aller sur la page **Impression**
-2. Sélectionner un produit
-3. L'impression sera envoyée directement à l'imprimante configurée
 
 ## Synchronisation après modifications
 
