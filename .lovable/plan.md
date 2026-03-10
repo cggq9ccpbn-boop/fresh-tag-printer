@@ -1,58 +1,72 @@
 
+Objectif: vous débloquer tout de suite pour ouvrir le projet iPhone/iPad dans Xcode.
 
-## Diagnostic: GitHub Actions "The operation was canceled"
+1. Ce qui bloque sur votre photo
+- Le problème ne vient pas du projet.
+- Votre Terminal est bloqué sur `bquote>` : cela veut dire qu’une commande a été ouverte avec un caractère spécial non fermé.
+- En plus, votre dossier a un espace dans le nom (`fresh-tag-printer-main 2`), donc la commande `cd` doit être écrite avec des guillemets.
 
-Le `.gitignore` est deja correct avec toutes les exclusions necessaires. Le probleme n'est pas la.
+2. Ce que vous devez faire maintenant
+- Dans le Terminal, appuyez sur `Ctrl + C`
+- Vous devez revenir à une ligne normale qui finit par `%`
 
-### Cause probable
+Ensuite copiez-collez exactement ceci :
 
-L'erreur "The operation was canceled" qui survient sur **plusieurs etapes** (checkout ET setup-node) indique generalement :
-
-1. **Minutes GitHub Actions epuisees** -- Les comptes gratuits ont 2000 minutes/mois. Si elles sont epuisees, les jobs sont annules automatiquement.
-2. **Timeout du workflow** -- Le job depasse le temps maximum autorise.
-
-### Verification immediate (a faire sur GitHub)
-
-1. Va dans **Settings > Billing and plans > Plans and usage** sur GitHub
-2. Verifie la section **Actions** -- si les minutes sont a 0, c'est la cause
-
-### Correction du workflow
-
-Ajouter un `timeout-minutes` au job pour eviter les blocages, et retirer le `cache: 'npm'` du setup-node qui peut causer des timeouts sur Windows :
-
-```yaml
-jobs:
-  build:
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            platform: win
-          - os: macos-latest
-            platform: mac
-          - os: ubuntu-latest
-            platform: linux
-
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+```bash
+cd ~/Downloads/"fresh-tag-printer-main 2"
+chmod +x setup-ios.sh
+./setup-ios.sh
 ```
 
-Changements :
-- Ajout de `timeout-minutes: 30` au job build
-- Retrait de `cache: 'npm'` qui peut bloquer sur certains runners Windows
+3. Ce qui va se passer
+- le Mac installe les dépendances
+- le projet iPhone est généré
+- la synchro iPhone est faite
+- Xcode s’ouvre automatiquement
 
-### Fichier modifie
+4. Si Xcode ne s’ouvre pas automatiquement
+Dans le même Terminal, lancez :
 
-| Fichier | Modification |
-|---|---|
-| `.github/workflows/electron-build.yml` | Ajout timeout + retrait cache npm |
+```bash
+npx cap open ios
+```
 
+5. Dans Xcode
+Quand Xcode est ouvert :
+- cliquez sur `App` dans la colonne de gauche
+- ouvrez `Signing & Capabilities`
+- cochez `Automatically manage signing`
+- choisissez votre `Team`
+- branchez votre iPhone ou iPad
+- en haut, sélectionnez votre appareil
+- cliquez sur le bouton `Run` `▶`
+
+6. Si vous ne trouvez toujours pas le bon fichier dans Xcode
+Le bon fichier à ouvrir est :
+
+```text
+ios/App/App.xcworkspace
+```
+
+Pas un `.txt`, pas un dossier seul, pas le repo GitHub brut.
+
+7. Plan de correction si vous voulez que je sécurise encore plus le projet
+Je recommande ensuite de faire ces améliorations :
+- rendre `setup-ios.sh` plus robuste pour éviter l’erreur si iOS existe déjà
+- ajouter une notice “copier-coller exact” dans `CAPACITOR.md`
+- documenter le cas des dossiers avec espaces dans le nom
+- ajouter la commande de secours pour ouvrir directement `ios/App/App.xcworkspace`
+
+Section technique
+```text
+Pourquoi vous voyez "bquote>" :
+- le shell attend la fin d’une commande ouverte
+- tant que vous êtes dans cet état, les lignes suivantes ne s’exécutent pas vraiment
+
+Pourquoi "cd" a échoué :
+- votre dossier contient un espace
+- il faut donc écrire :
+  cd ~/Downloads/"fresh-tag-printer-main 2"
+  ou
+  cd ~/Downloads/fresh-tag-printer-main\ 2
+```
