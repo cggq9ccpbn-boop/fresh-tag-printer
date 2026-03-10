@@ -2,12 +2,22 @@
 
 ## 🚀 Démarrage rapide (Mac + Xcode)
 
-Après avoir cloné le projet depuis GitHub, exécutez simplement :
+Après avoir cloné le projet depuis GitHub :
 
-```bash
-chmod +x setup-ios.sh
-./setup-ios.sh
-```
+1. Ouvrez le **Terminal** (Applications → Utilitaires → Terminal)
+2. Naviguez vers le dossier du projet (⚠️ si le nom contient des espaces, utilisez des guillemets) :
+   ```bash
+   cd ~/Downloads/"fresh-tag-printer-main"
+   ```
+3. Lancez le script :
+   ```bash
+   chmod +x setup-ios.sh
+   ./setup-ios.sh
+   ```
+
+> **Si le Terminal affiche `bquote>` ou `quote>`** : appuyez sur `Ctrl + C` puis réessayez en copiant-collant les commandes exactes ci-dessus.
+
+> **Si Xcode ne s'ouvre pas automatiquement** : lancez `npx cap open ios` ou ouvrez manuellement le fichier `ios/App/App.xcworkspace`.
 
 Ce script installe tout, génère le dossier `ios/`, et ouvre Xcode automatiquement.
 

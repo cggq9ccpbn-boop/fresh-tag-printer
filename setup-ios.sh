@@ -1,12 +1,18 @@
 #!/bin/bash
+set -e
+
 echo "🚀 Installation des dépendances..."
 npm install
 
 echo "🔨 Build de l'application..."
 npm run build
 
-echo "📱 Ajout de la plateforme iOS..."
-npx cap add ios
+if [ -d "ios" ]; then
+  echo "📱 Le dossier ios/ existe déjà, synchronisation..."
+else
+  echo "📱 Ajout de la plateforme iOS..."
+  npx cap add ios
+fi
 
 echo "🔄 Synchronisation avec Xcode..."
 npx cap sync ios
