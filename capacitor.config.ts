@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.58bcbc3740474e549d9057d780d12335',
+  appId: 'app.lovable.freshtagprinter',
   appName: 'fresh-tag-printer',
   webDir: 'dist',
   server: {
