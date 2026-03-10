@@ -2,7 +2,7 @@
 set -e
 
 echo "🚀 Installation des dépendances..."
-npm install
+npm install --legacy-peer-deps
 
 echo "🔨 Build de l'application..."
 npm run build
