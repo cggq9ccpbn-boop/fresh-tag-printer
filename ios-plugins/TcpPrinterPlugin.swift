@@ -3,7 +3,14 @@ import Capacitor
 import Network
 
 @objc(TcpPrinterPlugin)
-public class TcpPrinterPlugin: CAPPlugin {
+public class TcpPrinterPlugin: CAPPlugin, CAPBridgedPlugin {
+
+    public let identifier = "TcpPrinterPlugin"
+    public let jsName = "TcpPrinter"
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "print", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "testConnection", returnType: CAPPluginReturnPromise),
+    ]
 
     @objc func print(_ call: CAPPluginCall) {
         guard let ip = call.getString("ip"),
