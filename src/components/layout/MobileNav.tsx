@@ -2,6 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Home, Package, Settings, Printer, Menu, X } from 'lucide-react';
 import { usePrintQueue } from '@/hooks/usePrintQueue';
+import logo from '@/assets/logo.png';
 import { Button } from '@/components/ui/button';
 import {
   Drawer,
@@ -35,10 +36,8 @@ export function MobileNav() {
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-card border-b border-border lg:hidden">
       <div className="flex h-full items-center justify-between px-4">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">🏷️</span>
-          </div>
-          <span className="font-semibold text-foreground">Étiquettes Pro</span>
+          <img src={logo} alt="Ital Panini" className="h-9 w-9 rounded-lg object-contain" />
+          <span className="font-semibold text-foreground">Ital Panini</span>
         </div>
 
         <Drawer open={open} onOpenChange={setOpen}>
