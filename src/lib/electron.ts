@@ -1,6 +1,13 @@
 // Native printing utilities for desktop (Electron) and mobile (Capacitor)
 
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+
+interface TcpPrinterPlugin {
+  print(options: { ip: string; port: number; data: string }): Promise<{ success: boolean }>;
+  testConnection(options: { ip: string; port: number }): Promise<{ connected: boolean }>;
+}
+
+const TcpPrinter = registerPlugin<TcpPrinterPlugin>('TcpPrinter');
 
 interface PrinterInfo {
   ip: string;
