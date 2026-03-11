@@ -1,13 +1,13 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, Package, Settings, Printer } from 'lucide-react';
+import { Home, Package, Printer, Settings } from 'lucide-react';
 import { usePrintQueue } from '@/hooks/usePrintQueue';
 
 const navigation = [
   { name: 'Accueil', href: '/', icon: Home },
   { name: 'Produits', href: '/products', icon: Package },
-  { name: 'Impression', href: '/print', icon: Printer },
-  { name: 'Paramètres', href: '/settings', icon: Settings },
+  { name: 'Imprimer', href: '/print', icon: Printer },
+  { name: 'Réglages', href: '/settings', icon: Settings },
 ];
 
 export function BottomNav() {
@@ -16,8 +16,8 @@ export function BottomNav() {
   const queueCount = getQueueCount();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border lg:hidden safe-area-bottom">
-      <div className="flex items-center justify-around h-16 px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-xl border-t border-border/50 lg:hidden safe-area-bottom">
+      <div className="flex items-center justify-around h-14">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href;
           const Icon = item.icon;
@@ -28,31 +28,23 @@ export function BottomNav() {
               key={item.name}
               to={item.href}
               className={cn(
-                'flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all duration-200 min-w-[4rem]',
+                'flex flex-col items-center justify-center gap-0.5 py-1 px-4 transition-colors',
                 isActive
                   ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
+                  : 'text-muted-foreground'
               )}
             >
               <div className="relative">
-                <div className={cn(
-                  'p-1.5 rounded-xl transition-all duration-200',
-                  isActive && 'bg-primary/10'
-                )}>
-                  <Icon className={cn(
-                    'h-5 w-5 transition-transform duration-200',
-                    isActive && 'scale-110'
-                  )} />
-                </div>
+                <Icon className={cn('h-[22px] w-[22px]', isActive && 'stroke-[2.5px]')} />
                 {showBadge && (
-                  <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">
+                  <span className="absolute -top-1.5 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent text-accent-foreground text-[9px] font-bold px-1">
                     {queueCount > 99 ? '99+' : queueCount}
                   </span>
                 )}
               </div>
               <span className={cn(
-                'text-[10px] font-medium transition-all duration-200',
-                isActive && 'font-semibold'
+                'text-[10px]',
+                isActive ? 'font-semibold' : 'font-medium'
               )}>
                 {item.name}
               </span>
