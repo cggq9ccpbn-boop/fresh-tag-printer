@@ -1,58 +1,45 @@
 
 
-## Diagnostic: GitHub Actions "The operation was canceled"
+# Corriger le socket TCP sur iOS
 
-Le `.gitignore` est deja correct avec toutes les exclusions necessaires. Le probleme n'est pas la.
+## Problème
 
-### Cause probable
+Le plugin `capacitor-tcp-connect` n'a pas d'implémentation iOS fonctionnelle. L'erreur "plugin is not implemented on iOS" confirme que le code natif Swift n'est pas enregistré correctement.
 
-L'erreur "The operation was canceled" qui survient sur **plusieurs etapes** (checkout ET setup-node) indique generalement :
+## Solution
 
-1. **Minutes GitHub Actions epuisees** -- Les comptes gratuits ont 2000 minutes/mois. Si elles sont epuisees, les jobs sont annules automatiquement.
-2. **Timeout du workflow** -- Le job depasse le temps maximum autorise.
+Remplacer `capacitor-tcp-connect` par **`@spryrocks/capacitor-socket-connection-plugin`** qui supporte explicitement iOS et Android avec une API connect/send/disconnect complète.
 
-### Verification immediate (a faire sur GitHub)
+## Modifications
 
-1. Va dans **Settings > Billing and plans > Plans and usage** sur GitHub
-2. Verifie la section **Actions** -- si les minutes sont a 0, c'est la cause
+### 1. Remplacer le package npm
 
-### Correction du workflow
+- Retirer `capacitor-tcp-connect`
+- Installer `@spryrocks/capacitor-socket-connection-plugin`
 
-Ajouter un `timeout-minutes` au job pour eviter les blocages, et retirer le `cache: 'npm'` du setup-node qui peut causer des timeouts sur Windows :
+### 2. Adapter `src/lib/electron.ts`
 
-```yaml
-jobs:
-  build:
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            platform: win
-          - os: macos-latest
-            platform: mac
-          - os: ubuntu-latest
-            platform: linux
+Réécrire les fonctions `printViaTcp` et `testPrinterConnection` pour utiliser la nouvelle API :
 
-    runs-on: ${{ matrix.os }}
+```typescript
+// Ancien (capacitor-tcp-connect)
+const { SocketConnect } = await import('capacitor-tcp-connect');
+await SocketConnect.open({ ip, port: String(port), text: data });
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+// Nouveau (@spryrocks/capacitor-socket-connection-plugin)
+import { SocketConnectionPlugin } from '@spryrocks/capacitor-socket-connection-plugin';
+const socket = SocketConnectionPlugin.createSocket();
+await socket.open(ip, port);
+await socket.send(data);
+await socket.disconnect();
 ```
 
-Changements :
-- Ajout de `timeout-minutes: 30` au job build
-- Retrait de `cache: 'npm'` qui peut bloquer sur certains runners Windows
+### Après la modification
 
-### Fichier modifie
-
-| Fichier | Modification |
-|---|---|
-| `.github/workflows/electron-build.yml` | Ajout timeout + retrait cache npm |
+L'utilisateur devra :
+1. `git pull`
+2. `npm install`
+3. Supprimer le dossier `ios/` existant
+4. `npx cap add ios` puis `npm run build` puis `npx cap sync ios`
+5. Relancer depuis Xcode
 
