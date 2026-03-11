@@ -25,7 +25,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
 import { canPrintNatively, printViaTcp } from '@/lib/electron';
-import { generateZpl, zplToBase64 } from '@/lib/zpl';
+import { generateZpl } from '@/lib/zpl';
 
 export default function PrintPage() {
   const { products, getProduct } = useProducts();
@@ -62,10 +62,9 @@ export default function PrintPage() {
       const product = getProduct(item.productId);
       if (!product) continue;
       const zpl = generateZpl({ product, settings, productionDate: new Date(item.productionDate), dlcDate: new Date(item.dlcDate) });
-      const data = zplToBase64(zpl);
 
       for (let i = 0; i < item.quantity; i++) {
-        const result = await printViaTcp(settings.printerIp, settings.printerPort, data);
+        const result = await printViaTcp(settings.printerIp, settings.printerPort, zpl);
         if (result.success) { successCount++; } else { errorCount++; toast.error(`Erreur: ${result.error}`); break; }
       }
       if (errorCount > 0) break;
