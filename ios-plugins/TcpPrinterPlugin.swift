@@ -3,13 +3,7 @@ import Capacitor
 import Network
 
 @objc(TcpPrinterPlugin)
-public class TcpPrinterPlugin: CAPPlugin, CAPBridgedPlugin {
-    public let identifier = "TcpPrinterPlugin"
-    public let jsName = "TcpPrinter"
-    public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "print", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "testConnection", returnType: CAPPluginReturnPromise)
-    ]
+public class TcpPrinterPlugin: CAPPlugin {
 
     @objc func print(_ call: CAPPluginCall) {
         guard let ip = call.getString("ip"),
@@ -48,7 +42,6 @@ public class TcpPrinterPlugin: CAPPlugin, CAPBridgedPlugin {
 
         connection.start(queue: .global(qos: .userInitiated))
 
-        // Timeout after 10 seconds
         DispatchQueue.global().asyncAfter(deadline: .now() + 10) {
             if connection.state != .cancelled {
                 connection.cancel()
