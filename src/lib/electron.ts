@@ -1,6 +1,13 @@
 // Native printing utilities for desktop (Electron) and mobile (Capacitor)
 
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+
+interface TcpPrinterPlugin {
+  print(options: { ip: string; port: number; data: string }): Promise<{ success: boolean }>;
+  testConnection(options: { ip: string; port: number }): Promise<{ connected: boolean }>;
+}
+
+const TcpPrinter = registerPlugin<TcpPrinterPlugin>('TcpPrinter');
 
 interface PrinterInfo {
   ip: string;
@@ -81,16 +88,7 @@ export const printViaTcp = async (
 
   if (isCapacitor()) {
     try {
-      // Decode base64 data back to ZPL text
       const zplText = decodeURIComponent(escape(atob(data)));
-      
-      // Use custom native TcpPrinter plugin (Swift NWConnection on iOS)
-      const TcpPrinter = (Capacitor as any).Plugins?.TcpPrinter;
-      
-      if (!TcpPrinter) {
-        return { success: false, error: 'Plugin TcpPrinter non disponible. Reconstruisez l\'app avec setup-ios.sh.' };
-      }
-
       await TcpPrinter.print({ ip, port, data: zplText });
       return { success: true };
     } catch (error) {
@@ -119,12 +117,6 @@ export const testPrinterConnection = async (
 
   if (isCapacitor()) {
     try {
-      const TcpPrinter = (Capacitor as any).Plugins?.TcpPrinter;
-      
-      if (!TcpPrinter) {
-        return { success: false, error: 'Plugin TcpPrinter non disponible' };
-      }
-
       await TcpPrinter.testConnection({ ip, port });
       return { success: true };
     } catch (error) {
