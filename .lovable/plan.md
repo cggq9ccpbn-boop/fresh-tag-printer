@@ -1,58 +1,85 @@
 
+Objectif
 
-## Diagnostic: GitHub Actions "The operation was canceled"
+Corriger définitivement l’erreur `UNIMPLEMENTED` sur iPhone/iPad pour l’impression TCP, sans dépendre d’une étape manuelle fragile dans Xcode.
 
-Le `.gitignore` est deja correct avec toutes les exclusions necessaires. Le probleme n'est pas la.
+Ce que j’ai isolé
 
-### Cause probable
+- Le front appelle déjà un plugin local `TcpPrinter` dans `src/lib/electron.ts`.
+- Le plugin Swift existe bien dans `ios-plugins/TcpPrinterPlugin.swift/.m`.
+- Mais l’intégration iOS actuelle reste fragile :
+  - `setup-ios.sh` ne fait que copier des fichiers dans `ios/App/App/plugins/`
+  - il faut encore les ajouter manuellement dans Xcode
+  - il n’y a pas de trace d’un enregistrement natif explicite via `CAPBridgeViewController`
+- La doc Capacitor 8 confirme qu’un plugin local ajouté “à la main” doit être enregistré côté iOS, sinon on obtient précisément `UNIMPLEMENTED`.
+- Le projet contient encore les anciennes dépendances TCP (`@deedarb/capacitor-tcp-socket`, `capacitor-tcp-connect`, `capacitor-zebra-printer`), ce qui entretient la confusion.
+- L’UI montre encore “TcpSocket” dans `PrinterScanner.tsx` alors que le code utilise désormais `TcpPrinter`.
 
-L'erreur "The operation was canceled" qui survient sur **plusieurs etapes** (checkout ET setup-node) indique generalement :
+Plan recommandé
 
-1. **Minutes GitHub Actions epuisees** -- Les comptes gratuits ont 2000 minutes/mois. Si elles sont epuisees, les jobs sont annules automatiquement.
-2. **Timeout du workflow** -- Le job depasse le temps maximum autorise.
+1. Remplacer l’intégration iOS artisanale par un vrai plugin local Capacitor
+- Créer un plugin local dans le repo, versionné comme un vrai package Capacitor
+- Y déplacer la logique Swift `NWConnection`
+- Le déclarer comme dépendance locale du projet
+- Ainsi, `npx cap sync ios` l’installe proprement dans le projet natif, sans copier de fichiers à la main
 
-### Verification immediate (a faire sur GitHub)
+2. Nettoyer le frontend pour ne garder qu’un seul bridge
+- Conserver `registerPlugin('TcpPrinter')` côté TypeScript
+- Supprimer la logique liée aux anciens plugins tiers
+- Corriger les messages utilisateur et diagnostics pour parler uniquement de `TcpPrinter`
 
-1. Va dans **Settings > Billing and plans > Plans and usage** sur GitHub
-2. Verifie la section **Actions** -- si les minutes sont a 0, c'est la cause
+3. Simplifier totalement le setup iOS
+- Transformer `setup-ios.sh` en script fiable :
+  - install
+  - build
+  - `npx cap sync ios`
+  - ouverture Xcode
+- Supprimer la dépendance à “Add Files to App” si on passe par un vrai plugin local
 
-### Correction du workflow
+4. Garder les permissions réseau iOS
+- Conserver l’ajout de `NSLocalNetworkUsageDescription`
+- Conserver `NSBonjourServices`
+- Vérifier que la doc reflète bien le flux réel
 
-Ajouter un `timeout-minutes` au job pour eviter les blocages, et retirer le `cache: 'npm'` du setup-node qui peut causer des timeouts sur Windows :
+5. Validation
+- Vérifier que le diagnostic ne retourne plus `plugin_missing`
+- Vérifier “Tester la connexion”
+- Vérifier une impression réelle ZPL
 
-```yaml
-jobs:
-  build:
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            platform: win
-          - os: macos-latest
-            platform: mac
-          - os: ubuntu-latest
-            platform: linux
+Alternative minimale si on veut toucher le moins de fichiers possible
 
-    runs-on: ${{ matrix.os }}
+Si on ne veut pas créer un vrai plugin local Capacitor, alors il faut :
+- ajouter un `MyViewController.swift` qui hérite de `CAPBridgeViewController`
+- y faire `bridge?.registerPluginInstance(TcpPrinterPlugin())`
+- relier ce contrôleur au storyboard iOS généré
+- continuer à copier les fichiers Swift dans le projet iOS
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+Je ne recommande pas cette voie en premier, car elle reste plus fragile et plus difficile à maintenir.
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+Fichiers concernés
+
+- `src/lib/electron.ts`
+- `src/components/settings/PrinterScanner.tsx`
+- `package.json`
+- `setup-ios.sh`
+- `CAPACITOR.md`
+- nouveau dossier de plugin local Capacitor dans le repo
+- éventuellement suppression de l’approche `ios-plugins/` actuelle ou conservation temporaire pendant migration
+
+Détails techniques
+
+```text
+Etat actuel
+Web/TS -> registerPlugin('TcpPrinter') -> OK
+iOS runtime -> plugin copié manuellement / non enregistré fiablement -> UNIMPLEMENTED
+
+Etat cible
+Web/TS -> registerPlugin('TcpPrinter')
+        -> vrai plugin local Capacitor installé via sync
+        -> iOS plugin chargé automatiquement
+        -> test TCP / print TCP fonctionnels
 ```
 
-Changements :
-- Ajout de `timeout-minutes: 30` au job build
-- Retrait de `cache: 'npm'` qui peut bloquer sur certains runners Windows
+Résultat attendu
 
-### Fichier modifie
-
-| Fichier | Modification |
-|---|---|
-| `.github/workflows/electron-build.yml` | Ajout timeout + retrait cache npm |
-
+Après cette refonte, l’utilisateur n’aura plus à ajouter manuellement des fichiers Swift dans Xcode. Le flux redeviendra simple : `git pull` → `npm install` → `npm run build` → `npx cap sync ios` → ouvrir Xcode → Run.
