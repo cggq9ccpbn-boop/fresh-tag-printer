@@ -99,6 +99,11 @@ export default function SettingsPage() {
         </div>
       </SectionRow>
 
+      {/* Import/Export */}
+      <SectionRow icon="📦" title="Produits" subtitle="Importer / Exporter" open={openSection === 'products'} onToggle={() => toggle('products')}>
+        <ProductImportExport />
+      </SectionRow>
+
       {/* Save */}
       <div className="pt-2">
         <Button className="w-full h-12 rounded-2xl gradient-primary border-0 text-[14px] font-semibold" onClick={() => toast.success('Paramètres sauvegardés')}>
