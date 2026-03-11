@@ -76,16 +76,13 @@ export const printViaTcp = async (
 
   if (isCapacitor()) {
     try {
-      const { SocketConnect } = await import('capacitor-tcp-connect');
-      const result = await SocketConnect.open({
+      const { CapacitorZebraPrinter } = await import('capacitor-zebra-printer');
+      await CapacitorZebraPrinter.print({
         ip,
-        port: String(port),
-        text: data,
+        port,
+        zpl: data,
       });
-      return { 
-        success: result.value === 'success', 
-        error: result.value !== 'success' ? result.value : undefined 
-      };
+      return { success: true };
     } catch (error) {
       return { success: false, error: String(error) };
     }
@@ -112,16 +109,14 @@ export const testPrinterConnection = async (
 
   if (isCapacitor()) {
     try {
-      const { SocketConnect } = await import('capacitor-tcp-connect');
-      const result = await SocketConnect.open({
+      // Test by sending an empty ZPL command
+      const { CapacitorZebraPrinter } = await import('capacitor-zebra-printer');
+      await CapacitorZebraPrinter.print({
         ip,
-        port: String(port),
-        text: '',
+        port,
+        zpl: '',
       });
-      return { 
-        success: result.value === 'success', 
-        error: result.value !== 'success' ? result.value : undefined 
-      };
+      return { success: true };
     } catch (error) {
       return { success: false, error: String(error) };
     }
