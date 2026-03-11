@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Building2, Phone, FileText, Printer, Upload, X, Save, Tag, Eye, Camera, MapPin, Mail, Hash, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { PrinterScanner } from '@/components/settings/PrinterScanner';
+import { ProductImportExport } from '@/components/settings/ProductImportExport';
 import { LabelFormatSettings } from '@/components/settings/LabelFormatSettings';
 import { LabelPreview } from '@/components/print/LabelPreview';
 import { Product } from '@/types';
