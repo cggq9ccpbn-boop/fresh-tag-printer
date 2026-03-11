@@ -1,58 +1,40 @@
 
 
-## Diagnostic: GitHub Actions "The operation was canceled"
+# Corriger le chargement de l'app Capacitor sur iOS
 
-Le `.gitignore` est deja correct avec toutes les exclusions necessaires. Le probleme n'est pas la.
+## Problème identifié
 
-### Cause probable
+Le `capacitor.config.ts` utilise `server.url` pointant vers `https://...lovableproject.com`. Sur un appareil physique iOS, le WebView n'arrive pas à charger cette URL distante, ce qui provoque le "JS Eval error".
 
-L'erreur "The operation was canceled" qui survient sur **plusieurs etapes** (checkout ET setup-node) indique generalement :
+## Solution
 
-1. **Minutes GitHub Actions epuisees** -- Les comptes gratuits ont 2000 minutes/mois. Si elles sont epuisees, les jobs sont annules automatiquement.
-2. **Timeout du workflow** -- Le job depasse le temps maximum autorise.
+Supprimer la configuration `server.url` du `capacitor.config.ts` pour que l'app charge les fichiers locaux (depuis `dist/`) au lieu d'une URL distante. L'app fonctionnera en mode embarqué — plus rapide, plus fiable, et fonctionne hors ligne.
 
-### Verification immediate (a faire sur GitHub)
+### Modification unique : `capacitor.config.ts`
 
-1. Va dans **Settings > Billing and plans > Plans and usage** sur GitHub
-2. Verifie la section **Actions** -- si les minutes sont a 0, c'est la cause
+Retirer le bloc `server` pour que la config devienne :
 
-### Correction du workflow
+```typescript
+import type { CapacitorConfig } from '@capacitor/cli';
 
-Ajouter un `timeout-minutes` au job pour eviter les blocages, et retirer le `cache: 'npm'` du setup-node qui peut causer des timeouts sur Windows :
+const config: CapacitorConfig = {
+  appId: 'app.lovable.freshtagprinter',
+  appName: 'fresh-tag-printer',
+  webDir: 'dist',
+};
 
-```yaml
-jobs:
-  build:
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            platform: win
-          - os: macos-latest
-            platform: mac
-          - os: ubuntu-latest
-            platform: linux
-
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+export default config;
 ```
 
-Changements :
-- Ajout de `timeout-minutes: 30` au job build
-- Retrait de `cache: 'npm'` qui peut bloquer sur certains runners Windows
+### Après la modification
 
-### Fichier modifie
+L'utilisateur devra :
+1. `git pull` le projet
+2. `npm run build`
+3. `npx cap sync ios`
+4. Relancer depuis Xcode (▶️ Run)
 
-| Fichier | Modification |
-|---|---|
-| `.github/workflows/electron-build.yml` | Ajout timeout + retrait cache npm |
+## Note importante
+
+Le mode `server.url` (hot-reload distant) est pratique pour le développement mais instable sur appareil physique. Le mode local embarqué est la méthode recommandée pour tester et déployer sur iOS.
 
