@@ -16,7 +16,7 @@ export function BottomNav() {
   const queueCount = getQueueCount();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-xl border-t border-border/50 lg:hidden"
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/70 glass border-t border-border/40 lg:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex items-center justify-around h-14">
         {navigation.map((item) => {
@@ -29,23 +29,28 @@ export function BottomNav() {
               key={item.name}
               to={item.href}
               className={cn(
-                'flex flex-col items-center justify-center gap-0.5 py-1 px-4 transition-colors',
+                'flex flex-col items-center justify-center gap-0.5 py-1 px-4 transition-colors relative',
                 isActive
                   ? 'text-primary'
                   : 'text-muted-foreground'
               )}
             >
               <div className="relative">
-                <Icon className={cn('h-[22px] w-[22px]', isActive && 'stroke-[2.5px]')} />
+                <div className={cn(
+                  'transition-all duration-200',
+                  isActive && 'scale-110'
+                )}>
+                  <Icon className={cn('h-[22px] w-[22px]', isActive && 'stroke-[2.5px]')} />
+                </div>
                 {showBadge && (
-                  <span className="absolute -top-1.5 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent text-accent-foreground text-[9px] font-bold px-1">
+                  <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent text-accent-foreground text-[9px] font-bold px-1 shadow-soft">
                     {queueCount > 99 ? '99+' : queueCount}
                   </span>
                 )}
               </div>
               <span className={cn(
-                'text-[10px]',
-                isActive ? 'font-semibold' : 'font-medium'
+                'text-[10px] transition-all',
+                isActive ? 'font-bold' : 'font-medium'
               )}>
                 {item.name}
               </span>
