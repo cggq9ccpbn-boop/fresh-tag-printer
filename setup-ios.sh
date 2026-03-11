@@ -54,8 +54,16 @@ echo "📱 Ajout de la plateforme iOS..."
 npx cap add ios
 
 echo ""
-echo "🔄 Synchronisation (installe le plugin TcpPrinter automatiquement)..."
+echo "🔄 Synchronisation..."
 npx cap sync ios
+
+# ── Copie du plugin TcpPrinter directement dans le projet Xcode ──
+SOURCES_DIR="ios/App/App/Sources"
+mkdir -p "$SOURCES_DIR"
+echo "📦 Copie du plugin TcpPrinter dans ios/App/App/Sources/..."
+cp plugins/tcp-printer/ios/Sources/TcpPrinterPlugin.swift "$SOURCES_DIR/TcpPrinterPlugin.swift"
+cp plugins/tcp-printer/ios/Sources/TcpPrinterPlugin.m "$SOURCES_DIR/TcpPrinterPlugin.m"
+echo "   → Plugin TcpPrinter copié ✅"
 
 # ── Permissions réseau local dans Info.plist ──
 PLIST="ios/App/App/Info.plist"
