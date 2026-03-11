@@ -63,7 +63,7 @@ echo "   → Sources plugin copiées ✅"
 # on ajoute la classe directement dans AppDelegate.swift qui est TOUJOURS compilé.
 echo "🔌 Injection du BridgeViewController dans AppDelegate.swift..."
 
-if grep -q "TcpPrinterBridgeViewController" "$APPDELEGATE"; then
+if grep -q "class TcpPrinterBridgeViewController" "$APPDELEGATE"; then
   echo "   → BridgeViewController déjà présent dans AppDelegate.swift ✅"
 else
   cat >> "$APPDELEGATE" << 'SWIFT_EOF'
@@ -72,7 +72,6 @@ else
 // Injecté automatiquement par setup-ios.sh
 // Enregistre le plugin TcpPrinter manuellement dans le bridge Capacitor
 
-@objc(TcpPrinterBridgeViewController)
 class TcpPrinterBridgeViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         super.capacitorDidLoad()
@@ -83,6 +82,10 @@ class TcpPrinterBridgeViewController: CAPBridgeViewController {
 SWIFT_EOF
   echo "   → BridgeViewController injecté dans AppDelegate.swift ✅"
 fi
+
+# Supprime l'annotation @objc personnalisée (ancienne version)
+# qui empêche Interface Builder de résoudre la classe Swift namespacée (App.TcpPrinterBridgeViewController).
+sed -i '' '/@objc(TcpPrinterBridgeViewController)/d' "$APPDELEGATE"
 
 # ── Vérification que la classe est bien présente ──
 if ! grep -q "class TcpPrinterBridgeViewController" "$APPDELEGATE"; then
