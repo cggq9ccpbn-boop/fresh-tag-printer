@@ -1,7 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Package, Settings, Printer, ArrowRight, Tag, TrendingUp } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Package, Settings, Printer, ChevronRight } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 import { usePrintQueue } from '@/hooks/usePrintQueue';
 import { useSettings } from '@/hooks/useSettings';
@@ -12,108 +10,74 @@ export default function Dashboard() {
   const { isConfigured } = useSettings();
 
   return (
-    <div className="space-y-6 pt-2 animate-fade-in">
-      {/* Alerte si non configuré */}
+    <div className="space-y-8 pt-4 animate-fade-up">
+      {/* Alert */}
       {!isConfigured() && (
-        <Link to="/settings">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-accent/10 via-accent/5 to-transparent border border-accent/20 p-4 transition-all hover:shadow-card active:scale-[0.99]">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-accent/15 flex items-center justify-center flex-shrink-0">
-                <Settings className="h-5 w-5 text-accent" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-accent">Configuration requise</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Configurez votre distributeur pour commencer</p>
-              </div>
-              <ArrowRight className="h-4 w-4 text-accent flex-shrink-0" />
+        <Link to="/settings" className="block">
+          <div className="flex items-center gap-3 p-4 rounded-2xl bg-accent/8 border border-accent/15">
+            <div className="h-10 w-10 rounded-full bg-accent/12 flex items-center justify-center">
+              <Settings className="h-4.5 w-4.5 text-accent" />
             </div>
+            <div className="flex-1">
+              <p className="text-[13px] font-semibold text-accent">Configuration requise</p>
+              <p className="text-[12px] text-muted-foreground">Configurez votre distributeur</p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-accent/40" />
           </div>
         </Link>
       )}
 
-      {/* Stats */}
+      {/* Stats row */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="relative overflow-hidden rounded-2xl bg-card border border-border/60 p-4 shadow-card transition-all hover:shadow-elevated">
-          <div className="flex flex-col items-center gap-1">
-            <div className="h-8 w-8 rounded-xl gradient-primary flex items-center justify-center mb-1">
-              <Package className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="text-2xl font-bold tracking-tight text-foreground">{products.length}</span>
-            <span className="text-[11px] font-medium text-muted-foreground">Produits</span>
+        {[
+          { value: products.length, label: 'Produits', emoji: '📦' },
+          { value: getQueueCount(), label: 'Étiquettes', emoji: '🏷️' },
+          { value: queue.length, label: 'En file', emoji: '🖨️' },
+        ].map((stat) => (
+          <div key={stat.label} className="rounded-2xl bg-card p-4 text-center">
+            <span className="text-xl mb-1 block">{stat.emoji}</span>
+            <span className="text-xl font-bold tracking-tight block">{stat.value}</span>
+            <span className="text-[11px] text-muted-foreground font-medium">{stat.label}</span>
           </div>
-        </div>
-        <div className="relative overflow-hidden rounded-2xl bg-card border border-border/60 p-4 shadow-card transition-all hover:shadow-elevated">
-          <div className="flex flex-col items-center gap-1">
-            <div className="h-8 w-8 rounded-xl gradient-gold flex items-center justify-center mb-1">
-              <Tag className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="text-2xl font-bold tracking-tight text-foreground">{getQueueCount()}</span>
-            <span className="text-[11px] font-medium text-muted-foreground">Étiquettes</span>
-          </div>
-        </div>
-        <div className="relative overflow-hidden rounded-2xl bg-card border border-border/60 p-4 shadow-card transition-all hover:shadow-elevated">
-          <div className="flex flex-col items-center gap-1">
-            <div className="h-8 w-8 rounded-xl bg-secondary flex items-center justify-center mb-1">
-              <TrendingUp className="h-4 w-4 text-secondary-foreground" />
-            </div>
-            <span className="text-2xl font-bold tracking-tight text-foreground">{queue.length}</span>
-            <span className="text-[11px] font-medium text-muted-foreground">En file</span>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Actions rapides */}
-      <div>
-        <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3 px-1">Actions rapides</h2>
-        <div className="grid grid-cols-1 gap-2.5">
-          {[
-            { to: '/products', icon: Package, color: 'gradient-primary', title: 'Gérer les produits', desc: 'Ajouter, modifier, supprimer' },
-            { to: '/print', icon: Printer, color: 'gradient-gold', title: 'Imprimer des étiquettes', desc: queue.length > 0 ? `${getQueueCount()} en attente` : 'Créer et imprimer' },
-            { to: '/settings', icon: Settings, color: 'bg-secondary', title: 'Paramètres', desc: 'Distributeur et imprimante' },
-          ].map((action) => (
-            <Link key={action.to} to={action.to}>
-              <div className="group flex items-center gap-4 p-4 rounded-2xl bg-card border border-border/60 shadow-soft transition-all hover:shadow-card active:scale-[0.98]">
-                <div className={`h-11 w-11 rounded-xl ${action.color} flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105`}>
-                  <action.icon className="h-5 w-5 text-primary-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm">{action.title}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{action.desc}</p>
-                </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 flex-shrink-0" />
+      {/* Quick actions */}
+      <div className="rounded-2xl bg-card overflow-hidden divide-y divide-border">
+        {[
+          { to: '/products', icon: Package, title: 'Produits', desc: 'Ajouter et gérer', color: 'text-primary bg-primary/10' },
+          { to: '/print', icon: Printer, title: 'Impression', desc: queue.length > 0 ? `${getQueueCount()} en attente` : 'Créer des étiquettes', color: 'text-gold bg-gold-muted' },
+          { to: '/settings', icon: Settings, title: 'Paramètres', desc: 'Distributeur et imprimante', color: 'text-muted-foreground bg-muted' },
+        ].map((action) => (
+          <Link key={action.to} to={action.to}>
+            <div className="flex items-center gap-4 px-4 py-3.5 active:bg-muted/50 transition-colors">
+              <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${action.color}`}>
+                <action.icon className="h-[18px] w-[18px]" />
               </div>
-            </Link>
-          ))}
-        </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[14px] font-semibold">{action.title}</p>
+                <p className="text-[12px] text-muted-foreground">{action.desc}</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground/30" />
+            </div>
+          </Link>
+        ))}
       </div>
 
-      {/* File d'impression */}
+      {/* Queue summary */}
       {queue.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-3 px-1">
-            <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">File d'impression</h2>
-            <Link to="/print">
-              <Button size="sm" variant="ghost" className="text-primary text-xs h-7 font-semibold">
-                Voir tout
-              </Button>
-            </Link>
-          </div>
-          <div className="rounded-2xl bg-card border border-border/60 p-4 shadow-soft">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl gradient-primary flex items-center justify-center">
-                <Printer className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold">
-                  {queue.length} produit{queue.length > 1 ? 's' : ''}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {getQueueCount()} étiquette{getQueueCount() > 1 ? 's' : ''} à imprimer
-                </p>
-              </div>
+        <Link to="/print" className="block">
+          <div className="flex items-center gap-4 p-4 rounded-2xl bg-primary/8 border border-primary/12">
+            <div className="h-10 w-10 rounded-full gradient-primary flex items-center justify-center">
+              <Printer className="h-5 w-5 text-primary-foreground" />
             </div>
+            <div className="flex-1">
+              <p className="text-[14px] font-semibold">{getQueueCount()} étiquette{getQueueCount() > 1 ? 's' : ''}</p>
+              <p className="text-[12px] text-muted-foreground">Prêt à imprimer</p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-primary/40" />
           </div>
-        </div>
+        </Link>
       )}
     </div>
   );

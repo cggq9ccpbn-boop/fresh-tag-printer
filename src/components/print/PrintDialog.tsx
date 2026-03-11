@@ -5,12 +5,7 @@ import { Product } from '@/types';
 import { addDays, addHours, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,169 +26,104 @@ interface PrintDialogProps {
 export function PrintDialog({ open, onOpenChange, product }: PrintDialogProps) {
   const { addToQueue } = usePrintQueue();
   const { settings } = useSettings();
-
   const [productionDate, setProductionDate] = useState<Date>(new Date());
   const [dlcDate, setDlcDate] = useState<Date>(new Date());
   const [quantity, setQuantity] = useState(1);
 
-  // Calculer la DLC automatiquement
   useEffect(() => {
     if (product) {
-      let newDlcDate = new Date(productionDate);
-      newDlcDate = addDays(newDlcDate, product.shelfLifeDays);
-      newDlcDate = addHours(newDlcDate, product.shelfLifeHours);
-      setDlcDate(newDlcDate);
+      let d = new Date(productionDate);
+      d = addDays(d, product.shelfLifeDays);
+      d = addHours(d, product.shelfLifeHours);
+      setDlcDate(d);
     }
   }, [productionDate, product]);
 
-  // Reset quand le dialog s'ouvre
-  useEffect(() => {
-    if (open) {
-      setProductionDate(new Date());
-      setQuantity(1);
-    }
-  }, [open]);
+  useEffect(() => { if (open) { setProductionDate(new Date()); setQuantity(1); } }, [open]);
 
   const handleSubmit = () => {
-    if (quantity < 1) {
-      toast.error('Le nombre d\'étiquettes doit être supérieur à 0');
-      return;
-    }
-
-    addToQueue({
-      productId: product.id,
-      productionDate: productionDate.toISOString(),
-      dlcDate: dlcDate.toISOString(),
-      quantity,
-    });
-
-    toast.success(`${quantity} étiquette(s) ajoutée(s) à la file`);
+    if (quantity < 1) { toast.error('Quantité invalide'); return; }
+    addToQueue({ productId: product.id, productionDate: productionDate.toISOString(), dlcDate: dlcDate.toISOString(), quantity });
+    toast.success(`${quantity} étiquette(s) ajoutée(s)`);
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl">
         <DialogHeader>
-          <DialogTitle>Créer une étiquette</DialogTitle>
-          <DialogDescription>
-            Configurez les paramètres d'impression pour "{product.name}"
-          </DialogDescription>
+          <DialogTitle className="text-[16px]">Nouvelle étiquette</DialogTitle>
+          <DialogDescription className="text-[13px]">{product.name}</DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-4">
-          {/* Formulaire */}
-          <div className="space-y-6">
-            {/* Date de production */}
-            <div className="space-y-2">
-              <Label>Date de production</Label>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-3">
+          <div className="space-y-5">
+            {/* Production date */}
+            <div className="space-y-1.5">
+              <Label className="text-[12px] font-medium text-muted-foreground">Date de production</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !productionDate && 'text-muted-foreground'
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {productionDate ? format(productionDate, 'PPP', { locale: fr }) : 'Sélectionner'}
+                  <Button variant="outline" className="w-full justify-start text-left rounded-xl h-11 text-[13px]">
+                    <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                    {format(productionDate, 'PPP', { locale: fr })}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={productionDate}
-                    onSelect={(date) => date && setProductionDate(date)}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
+                <PopoverContent className="w-auto p-0 rounded-xl" align="start">
+                  <Calendar mode="single" selected={productionDate} onSelect={(d) => d && setProductionDate(d)} initialFocus className="p-3 pointer-events-auto" />
                 </PopoverContent>
               </Popover>
             </div>
 
-            {/* Date DLC */}
-            <div className="space-y-2">
-              <Label>
-                {product.dlcType === 'dlc' ? 'À consommer avant le' : 'À consommer de préférence avant le'}
+            {/* DLC date */}
+            <div className="space-y-1.5">
+              <Label className="text-[12px] font-medium text-muted-foreground">
+                {product.dlcType === 'dlc' ? 'À consommer avant le' : 'De préférence avant le'}
               </Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !dlcDate && 'text-muted-foreground'
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dlcDate ? format(dlcDate, 'PPP', { locale: fr }) : 'Sélectionner'}
+                  <Button variant="outline" className="w-full justify-start text-left rounded-xl h-11 text-[13px]">
+                    <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                    {format(dlcDate, 'PPP', { locale: fr })}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={dlcDate}
-                    onSelect={(date) => date && setDlcDate(date)}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
+                <PopoverContent className="w-auto p-0 rounded-xl" align="start">
+                  <Calendar mode="single" selected={dlcDate} onSelect={(d) => d && setDlcDate(d)} initialFocus className="p-3 pointer-events-auto" />
                 </PopoverContent>
               </Popover>
-              <p className="text-xs text-muted-foreground">
-                Calculée automatiquement ({product.shelfLifeDays}j {product.shelfLifeHours}h), modifiable
-              </p>
+              <p className="text-[11px] text-muted-foreground">Auto-calculée · {product.shelfLifeDays}j {product.shelfLifeHours}h</p>
             </div>
 
-            {/* Quantité */}
-            <div className="space-y-2">
-              <Label htmlFor="quantity">Nombre d'étiquettes</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="quantity"
-                  type="number"
-                  min="1"
-                  value={quantity}
-                  onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                  className="w-24"
-                />
+            {/* Quantity */}
+            <div className="space-y-1.5">
+              <Label className="text-[12px] font-medium text-muted-foreground">Quantité</Label>
+              <div className="flex gap-2 items-center">
+                <Input type="number" min="1" value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value) || 1)} className="w-20 h-11 rounded-xl text-[13px] text-center" />
                 <div className="flex gap-1">
-                  {[1, 5, 10, 20].map((num) => (
-                    <Button
-                      key={num}
-                      variant={quantity === num ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setQuantity(num)}
-                    >
-                      {num}
-                    </Button>
+                  {[1, 5, 10, 20].map((n) => (
+                    <button key={n} onClick={() => setQuantity(n)}
+                      className={`h-9 px-3 rounded-lg text-[12px] font-medium transition-colors ${quantity === n ? 'bg-foreground text-background' : 'bg-muted text-muted-foreground'}`}>
+                      {n}
+                    </button>
                   ))}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Aperçu */}
-          <div className="space-y-2">
-            <Label>Aperçu de l'étiquette</Label>
-            <div className="border rounded-xl p-4 bg-muted/30">
-              <LabelPreview
-                product={product}
-                settings={settings}
-                productionDate={productionDate}
-                dlcDate={dlcDate}
-              />
+          {/* Preview */}
+          <div>
+            <Label className="text-[12px] font-medium text-muted-foreground mb-2 block">Aperçu</Label>
+            <div className="rounded-2xl bg-muted/30 p-4 border border-border/50">
+              <LabelPreview product={product} settings={settings} productionDate={productionDate} dlcDate={dlcDate} />
             </div>
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuler
-          </Button>
-          <Button onClick={handleSubmit}>
-            <Plus className="mr-2 h-4 w-4" />
-            Ajouter à la file ({quantity})
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl text-[13px]">Annuler</Button>
+          <Button onClick={handleSubmit} className="rounded-xl gradient-primary border-0 text-[13px] font-semibold">
+            <Plus className="mr-1.5 h-4 w-4" />
+            Ajouter ({quantity})
           </Button>
         </DialogFooter>
       </DialogContent>
