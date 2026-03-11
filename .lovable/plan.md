@@ -1,89 +1,58 @@
 
 
-# Refonte design iOS/iPad + Impression TCP native
+## Diagnostic: GitHub Actions "The operation was canceled"
 
-## Contexte
-L'app fonctionne mais le design n'est pas optimisé pour iPhone/iPad (pas de header mobile avec logo, navigation basique, pas de safe areas). L'impression TCP via les plugins Capacitor tiers ne fonctionne pas sur iOS.
+Le `.gitignore` est deja correct avec toutes les exclusions necessaires. Le probleme n'est pas la.
 
-## Plan
+### Cause probable
 
-### 1. Refonte design mobile-first
+L'erreur "The operation was canceled" qui survient sur **plusieurs etapes** (checkout ET setup-node) indique generalement :
 
-**Layout** (`Layout.tsx`)
-- Ajouter le `MobileNav` (header avec logo + menu hamburger) pour mobile
-- Ajouter `pt-16` au contenu mobile pour compenser le header fixe
-- Safe area bottom pour la bottom nav
+1. **Minutes GitHub Actions epuisees** -- Les comptes gratuits ont 2000 minutes/mois. Si elles sont epuisees, les jobs sont annules automatiquement.
+2. **Timeout du workflow** -- Le job depasse le temps maximum autorise.
 
-**Dashboard** (`Dashboard.tsx`)
-- Header avec logo Ital Panini et salutation
-- Cards stats plus compactes et colorées avec icones en couleur
-- Actions rapides en grille 2 colonnes sur mobile
-- Design épuré style iOS : coins arrondis xl, ombres douces
+### Verification immediate (a faire sur GitHub)
 
-**ProductsPage** (`ProductsPage.tsx`)
-- Cards produits en liste compacte sur mobile (pas de grille avec photo pleine)
-- Boutons d'action visibles sans hover (swipe ou boutons inline)
-- Filtres catégories en scroll horizontal
+1. Va dans **Settings > Billing and plans > Plans and usage** sur GitHub
+2. Verifie la section **Actions** -- si les minutes sont a 0, c'est la cause
 
-**PrintPage** (`PrintPage.tsx`)
-- Layout en une colonne sur mobile
-- Boutons d'impression plus gros et accessibles
-- File d'impression avec swipe-to-delete visuel
+### Correction du workflow
 
-**SettingsPage** (`SettingsPage.tsx`)
-- Sections plus compactes, style iOS Settings
-- Moins d'espace vertical gaspillé
+Ajouter un `timeout-minutes` au job pour eviter les blocages, et retirer le `cache: 'npm'` du setup-node qui peut causer des timeouts sur Windows :
 
-**Thème** (`index.css`)
-- Couleurs plus chaudes inspirées du logo (vert italien, rouge, doré)
-- Variables CSS mises à jour
+```yaml
+jobs:
+  build:
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win
+          - os: macos-latest
+            platform: mac
+          - os: ubuntu-latest
+            platform: linux
 
-**BottomNav** (`BottomNav.tsx`)
-- Safe area bottom pour les iPhones avec encoche
-- Style plus iOS natif avec indicateur actif
+    runs-on: ${{ matrix.os }}
 
-### 2. Plugin TCP natif custom pour iOS
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-Puisque tous les plugins tiers échouent, créer un plugin Capacitor local :
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+```
 
-**Fichiers natifs** (copiés dans `ios/App/App/` via script) :
-- `TcpPrinterPlugin.swift` : utilise `NWConnection` (framework Network d'Apple) pour envoyer du ZPL en TCP
-- `TcpPrinterPlugin.m` : bridge Objective-C pour enregistrement Capacitor
+Changements :
+- Ajout de `timeout-minutes: 30` au job build
+- Retrait de `cache: 'npm'` qui peut bloquer sur certains runners Windows
 
-**`src/lib/electron.ts`** :
-- Sur Capacitor : appel via `Capacitor.Plugins.TcpPrinter.print()` / `.testConnection()`
-- Suppression des imports de plugins tiers défaillants
+### Fichier modifie
 
-**`setup-ios.sh`** :
-- Copie automatique des fichiers Swift dans le projet Xcode
-- Instructions claires post-setup
-
-**Nettoyage `package.json`** :
-- Retrait de `@deedarb/capacitor-tcp-socket` et `capacitor-tcp-connect`
-
-### 3. Fichiers modifiés
-
-| Fichier | Changement |
-|---------|-----------|
-| `src/index.css` | Palette de couleurs Ital Panini |
-| `src/components/layout/Layout.tsx` | Ajout MobileNav + safe areas |
-| `src/components/layout/BottomNav.tsx` | Style iOS natif + safe area |
-| `src/components/layout/MobileNav.tsx` | Header mobile avec logo |
-| `src/pages/Dashboard.tsx` | Design cards iOS-like |
-| `src/pages/ProductsPage.tsx` | Liste compacte mobile, actions visibles |
-| `src/pages/PrintPage.tsx` | Layout mobile optimisé |
-| `src/pages/SettingsPage.tsx` | Style iOS Settings |
-| `src/lib/electron.ts` | Plugin natif custom Capacitor |
-| `ios-plugins/TcpPrinterPlugin.swift` | Nouveau - Code Swift TCP |
-| `ios-plugins/TcpPrinterPlugin.m` | Nouveau - Bridge ObjC |
-| `setup-ios.sh` | Mise a jour - copie fichiers natifs |
-
-### Apres implementation
-
-Sur le Mac :
-1. `git pull` + `npm install`
-2. Supprimer `ios/` puis `npx cap add ios`
-3. `npm run build` + `npx cap sync ios`
-4. Executer `bash setup-ios.sh` pour copier les fichiers Swift
-5. Ouvrir Xcode et lancer
+| Fichier | Modification |
+|---|---|
+| `.github/workflows/electron-build.yml` | Ajout timeout + retrait cache npm |
 

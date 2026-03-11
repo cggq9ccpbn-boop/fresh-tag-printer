@@ -4,10 +4,10 @@ import { usePrintQueue } from '@/hooks/usePrintQueue';
 import { useSettings } from '@/hooks/useSettings';
 import { useCategories } from '@/hooks/useCategories';
 import { Product } from '@/types';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Printer, Trash2, Plus, AlertCircle } from 'lucide-react';
+import { Printer, Trash2, Plus, AlertCircle, Eye } from 'lucide-react';
 import { PrintDialog } from '@/components/print/PrintDialog';
 import { LabelPreview } from '@/components/print/LabelPreview';
 import {
@@ -42,9 +42,7 @@ export default function PrintPage() {
   } | null>(null);
   const [printing, setPrinting] = useState(false);
 
-  const getCategoryIcon = (categoryId: string) => {
-    return getCategory(categoryId)?.icon || '📦';
-  };
+  const getCategoryIcon = (categoryId: string) => getCategory(categoryId)?.icon || '📦';
 
   const handleSelectProduct = (product: Product) => {
     setSelectedProduct(product);
@@ -52,20 +50,9 @@ export default function PrintPage() {
   };
 
   const handlePrint = async () => {
-    if (!isConfigured()) {
-      toast.error('Veuillez configurer les paramètres du distributeur');
-      return;
-    }
-
-    if (queue.length === 0) {
-      toast.error('La file d\'impression est vide');
-      return;
-    }
-
-    if (!canPrintNatively()) {
-      toast.error('L\'impression nécessite l\'application desktop (Windows) ou iPad. Sur le web, l\'impression TCP n\'est pas possible.');
-      return;
-    }
+    if (!isConfigured()) { toast.error('Configurez le distributeur d\'abord'); return; }
+    if (queue.length === 0) { toast.error('File vide'); return; }
+    if (!canPrintNatively()) { toast.error('Impression TCP disponible uniquement dans l\'app native'); return; }
 
     setPrinting(true);
     let successCount = 0;
@@ -74,86 +61,39 @@ export default function PrintPage() {
     for (const item of queue) {
       const product = getProduct(item.productId);
       if (!product) continue;
-
-      const zpl = generateZpl({
-        product,
-        settings,
-        productionDate: new Date(item.productionDate),
-        dlcDate: new Date(item.dlcDate),
-      });
-
+      const zpl = generateZpl({ product, settings, productionDate: new Date(item.productionDate), dlcDate: new Date(item.dlcDate) });
       const data = zplToBase64(zpl);
 
       for (let i = 0; i < item.quantity; i++) {
         const result = await printViaTcp(settings.printerIp, settings.printerPort, data);
-        if (result.success) {
-          successCount++;
-        } else {
-          errorCount++;
-          toast.error(`Erreur impression: ${result.error}`);
-          break;
-        }
+        if (result.success) { successCount++; } else { errorCount++; toast.error(`Erreur: ${result.error}`); break; }
       }
-
       if (errorCount > 0) break;
     }
 
     setPrinting(false);
-
-    if (errorCount === 0) {
-      clearQueue();
-      toast.success(`${successCount} étiquette(s) imprimée(s) avec succès !`);
-    }
+    if (errorCount === 0) { clearQueue(); toast.success(`${successCount} étiquette(s) imprimée(s) !`); }
   };
 
-  const handleRemoveFromQueue = (id: string) => {
-    removeFromQueue(id);
-    toast.success('Retiré de la file d\'impression');
-  };
-
-  const handleClearQueue = () => {
-    clearQueue();
-    setClearDialogOpen(false);
-    toast.success('File d\'impression vidée');
-  };
+  const handleRemoveFromQueue = (id: string) => { removeFromQueue(id); toast.success('Retiré'); };
+  const handleClearQueue = () => { clearQueue(); setClearDialogOpen(false); toast.success('File vidée'); };
 
   const handlePreview = (queueItem: typeof queue[0]) => {
     const product = getProduct(queueItem.productId);
-    if (product) {
-      setPreviewItem({
-        product,
-        productionDate: new Date(queueItem.productionDate),
-        dlcDate: new Date(queueItem.dlcDate),
-      });
-    }
+    if (product) setPreviewItem({ product, productionDate: new Date(queueItem.productionDate), dlcDate: new Date(queueItem.dlcDate) });
   };
 
   if (!isConfigured()) {
     return (
-      <div className="space-y-6 sm:space-y-8">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
-            Impression
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-            Gérez votre file d'impression
-          </p>
-        </div>
-
-        <Card className="border-amber-200 bg-amber-50/50">
-          <CardContent className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
-            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-amber-100 flex items-center justify-center mb-4">
-              <AlertCircle className="h-7 w-7 sm:h-8 sm:w-8 text-amber-600" />
+      <div className="space-y-4 pt-2">
+        <Card className="border-accent/30 bg-accent/5">
+          <CardContent className="flex flex-col items-center py-12 px-4">
+            <div className="h-14 w-14 rounded-2xl bg-accent/10 flex items-center justify-center mb-3">
+              <AlertCircle className="h-7 w-7 text-accent" />
             </div>
-            <h3 className="text-base sm:text-lg font-medium text-amber-900 text-center">Configuration requise</h3>
-            <p className="text-amber-700 text-center mt-1 max-w-md text-sm sm:text-base">
-              Veuillez configurer les informations de votre distributeur avant de pouvoir imprimer des étiquettes.
-            </p>
-            <Link to="/settings">
-              <Button className="mt-4">
-                Configurer le distributeur
-              </Button>
-            </Link>
+            <h3 className="font-medium text-accent">Configuration requise</h3>
+            <p className="text-sm text-muted-foreground text-center mt-1">Configurez votre distributeur avant d'imprimer</p>
+            <Link to="/settings"><Button className="mt-4" size="sm">Configurer</Button></Link>
           </CardContent>
         </Card>
       </div>
@@ -161,209 +101,119 @@ export default function PrintPage() {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
-            Impression
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-            {queue.length === 0
-              ? 'Sélectionnez un produit pour créer une étiquette'
-              : `${queue.length} produit(s) en file • ${getQueueCount()} étiquette(s)`}
-          </p>
-          {!canPrintNatively() && (
-            <p className="text-xs text-amber-600 mt-1">
-              ⚠️ Impression TCP disponible uniquement dans l'app desktop/iPad
-            </p>
-          )}
+    <div className="space-y-4 pt-2">
+      {/* Print action bar */}
+      {queue.length > 0 && (
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setClearDialogOpen(true)} className="flex-1 h-10">
+            Vider
+          </Button>
+          <Button size="sm" onClick={handlePrint} disabled={printing} className="flex-1 h-10">
+            <Printer className="mr-1.5 h-4 w-4" />
+            {printing ? 'Impression...' : `Imprimer (${getQueueCount()})`}
+          </Button>
         </div>
-        {queue.length > 0 && (
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setClearDialogOpen(true)} className="w-full sm:w-auto">
-              Vider la file
-            </Button>
-            <Button onClick={handlePrint} disabled={printing} className="w-full sm:w-auto">
-              <Printer className="mr-2 h-4 w-4" />
-              {printing ? 'Impression...' : `Imprimer (${getQueueCount()})`}
-            </Button>
+      )}
+
+      {!canPrintNatively() && (
+        <p className="text-[11px] text-accent text-center">⚠️ Impression TCP uniquement dans l'app native</p>
+      )}
+
+      {/* Product selection */}
+      <div>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Sélectionner un produit</h2>
+        {products.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center">
+              <p className="text-sm text-muted-foreground">Aucun produit</p>
+              <Link to="/products"><Button size="sm" variant="outline" className="mt-3">Ajouter des produits</Button></Link>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-1.5 max-h-[35vh] overflow-y-auto">
+            {products.map((product) => (
+              <Card key={product.id} className="active:scale-[0.98] transition-transform cursor-pointer" onClick={() => handleSelectProduct(product)}>
+                <CardContent className="flex items-center gap-3 py-2.5 px-3">
+                  {product.photo ? (
+                    <img src={product.photo} alt={product.name} className="h-9 w-9 object-cover rounded-lg" />
+                  ) : (
+                    <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center">
+                      <span className="text-base">{getCategoryIcon(product.category)}</span>
+                    </div>
+                  )}
+                  <span className="flex-1 text-sm font-medium truncate">{product.name}</span>
+                  <Plus className="h-4 w-4 text-muted-foreground" />
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-        {/* Sélection de produit */}
-        <div className="space-y-4">
-          <h2 className="text-lg sm:text-xl font-semibold">Sélectionner un produit</h2>
-          
-          {products.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <p className="text-muted-foreground text-center">
-                  Aucun produit dans le catalogue
-                </p>
-                <Link to="/products">
-                  <Button className="mt-4" variant="outline">
-                    Ajouter des produits
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-2 max-h-[50vh] sm:max-h-[60vh] overflow-y-auto pr-2">
-              {products.map((product) => (
-                <Card
-                  key={product.id}
-                  className="cursor-pointer hover:shadow-md hover:border-primary/50 transition-all duration-200"
-                  onClick={() => handleSelectProduct(product)}
-                >
-                  <CardContent className="flex items-center gap-4 py-3">
-                    {product.photo ? (
-                      <img
-                        src={product.photo}
-                        alt={product.name}
-                        className="h-12 w-12 object-cover rounded-lg"
-                      />
-                    ) : (
-                      <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
-                        <span className="text-xl">{getCategoryIcon(product.category)}</span>
-                      </div>
-                    )}
+      {/* Queue */}
+      <div>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          File d'impression {queue.length > 0 && `(${getQueueCount()})`}
+        </h2>
+        {queue.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center py-8">
+              <Printer className="h-8 w-8 text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">File vide</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-1.5">
+            {queue.map((item) => {
+              const product = getProduct(item.productId);
+              if (!product) return null;
+              return (
+                <Card key={item.id}>
+                  <CardContent className="flex items-center gap-3 py-2.5 px-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">{product.name}</h3>
+                      <p className="text-sm font-medium truncate">{product.name}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {format(new Date(item.productionDate), 'dd/MM', { locale: fr })} → {format(new Date(item.dlcDate), 'dd/MM', { locale: fr })}
+                      </p>
                     </div>
-                    <Button size="sm" variant="ghost">
-                      <Plus className="h-4 w-4" />
+                    <Badge variant="secondary" className="text-xs">{item.quantity}×</Badge>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handlePreview(item)}>
+                      <Eye className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => handleRemoveFromQueue(item.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* File d'impression */}
-        <div className="space-y-4">
-          <h2 className="text-lg sm:text-xl font-semibold">File d'impression</h2>
-          
-          {queue.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-10 sm:py-12">
-                <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
-                  <Printer className="h-7 w-7 sm:h-8 sm:w-8 text-muted-foreground" />
-                </div>
-                <p className="text-muted-foreground text-center text-sm sm:text-base">
-                  La file d'impression est vide
-                </p>
-                <p className="text-xs sm:text-sm text-muted-foreground text-center mt-1">
-                  Sélectionnez un produit pour l'ajouter
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-2 max-h-[50vh] sm:max-h-[60vh] overflow-y-auto pr-2">
-              {queue.map((item) => {
-                const product = getProduct(item.productId);
-                if (!product) return null;
-
-                return (
-                  <Card key={item.id} className="hover:shadow-sm transition-shadow">
-                    <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 py-3">
-                      <div className="flex items-center gap-3 w-full sm:w-auto sm:flex-1">
-                        {product.photo ? (
-                          <img
-                            src={product.photo}
-                            alt={product.name}
-                            className="h-12 w-12 object-cover rounded-lg flex-shrink-0"
-                          />
-                        ) : (
-                          <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                            <span className="text-xl">{getCategoryIcon(product.category)}</span>
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">{product.name}</h3>
-                          <p className="text-xs text-muted-foreground">
-                            Prod: {format(new Date(item.productionDate), 'dd/MM/yyyy', { locale: fr })}
-                            {' • '}
-                            DLC: {format(new Date(item.dlcDate), 'dd/MM/yyyy', { locale: fr })}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-                        <Badge variant="secondary">{item.quantity}×</Badge>
-                        <div className="flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handlePreview(item)}
-                          >
-                            Aperçu
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => handleRemoveFromQueue(item.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Aperçu de l'étiquette */}
+      {/* Preview */}
       {previewItem && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base sm:text-lg">Aperçu de l'étiquette</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              Format {settings.labelWidth || 50}mm × {settings.labelHeight || 80}mm
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center overflow-x-auto py-4">
-            <LabelPreview
-              product={previewItem.product}
-              settings={settings}
-              productionDate={previewItem.productionDate}
-              dlcDate={previewItem.dlcDate}
-            />
+          <CardContent className="py-4">
+            <p className="text-xs text-muted-foreground mb-3 text-center">Aperçu — {settings.labelWidth || 50}×{settings.labelHeight || 80}mm</p>
+            <div className="flex justify-center overflow-x-auto">
+              <LabelPreview product={previewItem.product} settings={settings} productionDate={previewItem.productionDate} dlcDate={previewItem.dlcDate} />
+            </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Dialog d'ajout à la file */}
-      {selectedProduct && (
-        <PrintDialog
-          open={printDialogOpen}
-          onOpenChange={setPrintDialogOpen}
-          product={selectedProduct}
-        />
-      )}
+      {selectedProduct && <PrintDialog open={printDialogOpen} onOpenChange={setPrintDialogOpen} product={selectedProduct} />}
 
-      {/* Dialog de confirmation pour vider la file */}
       <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Vider la file d'impression ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer tous les éléments de la file d'impression ?
-              Cette action est irréversible.
-            </AlertDialogDescription>
+            <AlertDialogTitle>Vider la file ?</AlertDialogTitle>
+            <AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleClearQueue} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Vider
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleClearQueue} className="bg-destructive text-destructive-foreground">Vider</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

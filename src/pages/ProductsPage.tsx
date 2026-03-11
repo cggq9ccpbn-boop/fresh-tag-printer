@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 export default function ProductsPage() {
   const { products, deleteProduct } = useProducts();
@@ -38,13 +39,8 @@ export default function ProductsPage() {
     return matchesSearch && matchesCategory;
   });
 
-  const getCategoryLabel = (categoryId: CategoryId) => {
-    return getCategory(categoryId)?.label || categoryId;
-  };
-
-  const getCategoryIcon = (categoryId: CategoryId) => {
-    return getCategory(categoryId)?.icon || '📦';
-  };
+  const getCategoryLabel = (categoryId: CategoryId) => getCategory(categoryId)?.label || categoryId;
+  const getCategoryIcon = (categoryId: CategoryId) => getCategory(categoryId)?.icon || '📦';
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
@@ -71,39 +67,37 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-4 pt-2">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
-            Catalogue produits
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-            {products.length} produit{products.length > 1 ? 's' : ''} dans le catalogue
-          </p>
-        </div>
-        <Button onClick={() => setDialogOpen(true)} className="w-full sm:w-auto">
-          <Plus className="mr-2 h-4 w-4" />
-          Nouveau produit
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {products.length} produit{products.length > 1 ? 's' : ''}
+        </p>
+        <Button size="sm" onClick={() => setDialogOpen(true)} className="h-8">
+          <Plus className="mr-1.5 h-3.5 w-3.5" />
+          Ajouter
         </Button>
       </div>
 
-      {/* Filtres */}
-      <div className="flex flex-col gap-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher un produit..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <div className="flex gap-2 flex-wrap items-center">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Rechercher..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 h-10 bg-card border-border/50"
+        />
+      </div>
+
+      {/* Category filters - horizontal scroll */}
+      <ScrollArea className="w-full whitespace-nowrap">
+        <div className="flex gap-2 pb-1">
           <Button
             variant={selectedCategory === 'all' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setSelectedCategory('all')}
+            className="h-8 text-xs rounded-full flex-shrink-0"
           >
             Tous
           </Button>
@@ -113,137 +107,112 @@ export default function ProductsPage() {
               variant={selectedCategory === category.id ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSelectedCategory(category.id)}
-              className="text-xs sm:text-sm"
+              className="h-8 text-xs rounded-full flex-shrink-0"
             >
-              <span className="hidden sm:inline">{category.icon} </span>{category.label}
+              {category.icon} {category.label}
             </Button>
           ))}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setCategoryDialogOpen(true)}
-            className="text-muted-foreground hover:text-foreground"
+            className="h-8 text-xs text-muted-foreground flex-shrink-0"
           >
-            <Settings2 className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Gérer</span>
+            <Settings2 className="h-3.5 w-3.5" />
           </Button>
         </div>
-      </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
 
-      {/* Liste des produits */}
+      {/* Product list */}
       {filteredProducts.length === 0 ? (
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
-              <Package className="h-8 w-8 text-muted-foreground" />
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <div className="h-14 w-14 rounded-2xl bg-muted flex items-center justify-center mb-3">
+              <Package className="h-7 w-7 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium">Aucun produit</h3>
-            <p className="text-muted-foreground text-center mt-1">
+            <p className="text-sm font-medium">Aucun produit</p>
+            <p className="text-xs text-muted-foreground mt-1 text-center">
               {searchQuery || selectedCategory !== 'all'
-                ? 'Aucun produit ne correspond à vos critères'
-                : 'Commencez par ajouter votre premier produit'}
+                ? 'Aucun résultat'
+                : 'Ajoutez votre premier produit'}
             </p>
             {!searchQuery && selectedCategory === 'all' && (
-              <Button className="mt-4" onClick={() => setDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Ajouter un produit
+              <Button size="sm" className="mt-3" onClick={() => setDialogOpen(true)}>
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                Ajouter
               </Button>
             )}
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <div className="space-y-2">
           {filteredProducts.map((product) => (
-            <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-200 group">
-              {/* Photo */}
-              <div className="aspect-video bg-muted relative overflow-hidden">
+            <Card key={product.id} className="overflow-hidden active:scale-[0.98] transition-transform">
+              <CardContent className="flex items-center gap-3 py-3 px-4">
+                {/* Icon/Photo */}
                 {product.photo ? (
                   <img
                     src={product.photo}
                     alt={product.name}
-                    className="w-full h-full object-cover"
+                    className="h-11 w-11 object-cover rounded-xl flex-shrink-0"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-4xl">{getCategoryIcon(product.category)}</span>
-                  </div>
-                )}
-                {/* Actions overlay */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <Button size="icon" variant="secondary" onClick={() => handleEdit(product)}>
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button size="icon" variant="destructive" onClick={() => handleDelete(product)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="font-semibold text-foreground">{product.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {getCategoryIcon(product.category)} {getCategoryLabel(product.category)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Allergènes */}
-                {product.allergens.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-3">
-                    {product.allergens.slice(0, 4).map((allergenId) => {
-                      const allergen = ALLERGENS.find((a) => a.id === allergenId);
-                      return allergen ? (
-                        <Badge key={allergenId} variant="secondary" className="text-xs">
-                          {allergen.icon} {allergen.label}
-                        </Badge>
-                      ) : null;
-                    })}
-                    {product.allergens.length > 4 && (
-                      <Badge variant="secondary" className="text-xs">
-                        +{product.allergens.length - 4}
-                      </Badge>
-                    )}
+                  <div className="h-11 w-11 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg">{getCategoryIcon(product.category)}</span>
                   </div>
                 )}
 
-                {/* Conservation */}
-                <p className="text-xs text-muted-foreground mt-3">
-                  Conservation : {product.shelfLifeDays > 0 ? `${product.shelfLifeDays}j` : ''}
-                  {product.shelfLifeDays > 0 && product.shelfLifeHours > 0 ? ' ' : ''}
-                  {product.shelfLifeHours > 0 ? `${product.shelfLifeHours}h` : ''}
-                  {product.shelfLifeDays === 0 && product.shelfLifeHours === 0 ? 'Non définie' : ''}
-                  {' • '}
-                  {product.dlcType === 'dlc' ? 'DLC' : 'DDM'}
-                </p>
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-sm truncate">{product.name}</h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    {getCategoryLabel(product.category)}
+                    {' · '}
+                    {product.shelfLifeDays > 0 ? `${product.shelfLifeDays}j` : ''}
+                    {product.shelfLifeHours > 0 ? `${product.shelfLifeHours}h` : ''}
+                    {' · '}
+                    {product.dlcType === 'dlc' ? 'DLC' : 'DDM'}
+                  </p>
+                  {product.allergens.length > 0 && (
+                    <div className="flex gap-1 mt-1">
+                      {product.allergens.slice(0, 3).map((id) => {
+                        const a = ALLERGENS.find((x) => x.id === id);
+                        return a ? (
+                          <span key={id} className="text-[10px]">{a.icon}</span>
+                        ) : null;
+                      })}
+                      {product.allergens.length > 3 && (
+                        <span className="text-[10px] text-muted-foreground">+{product.allergens.length - 3}</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions - always visible */}
+                <div className="flex gap-1 flex-shrink-0">
+                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleEdit(product)}>
+                    <Edit2 className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => handleDelete(product)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
 
-      {/* Dialog création/édition */}
-      <ProductDialog
-        open={dialogOpen}
-        onOpenChange={handleDialogClose}
-        product={editingProduct}
-      />
+      <ProductDialog open={dialogOpen} onOpenChange={handleDialogClose} product={editingProduct} />
+      <CategoryDialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen} />
 
-      {/* Dialog gestion des catégories */}
-      <CategoryDialog
-        open={categoryDialogOpen}
-        onOpenChange={setCategoryDialogOpen}
-      />
-
-      {/* Dialog de confirmation de suppression */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer ce produit ?</AlertDialogTitle>
             <AlertDialogDescription>
               Êtes-vous sûr de vouloir supprimer "{productToDelete?.name}" ?
-              Cette action est irréversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

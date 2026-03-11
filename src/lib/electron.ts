@@ -62,8 +62,8 @@ export const scanForPrinters = async (
 };
 
 /**
- * Print data directly to a thermal printer via TCP
- * Uses @deedarb/capacitor-tcp-socket on iOS/Android, Electron IPC on desktop
+ * Print data directly to a thermal printer via TCP.
+ * Uses custom native TcpPrinter plugin on iOS/Android, Electron IPC on desktop.
  */
 export const printViaTcp = async (
   ip: string,
@@ -83,24 +83,15 @@ export const printViaTcp = async (
     try {
       // Decode base64 data back to ZPL text
       const zplText = decodeURIComponent(escape(atob(data)));
-      const { TcpSocket } = await import('@deedarb/capacitor-tcp-socket');
       
-      // Connect to printer
-      const { client } = await TcpSocket.connect({
-        ipAddress: ip,
-        port,
-        timeout: 10,
-      });
+      // Use custom native TcpPrinter plugin (Swift NWConnection on iOS)
+      const TcpPrinter = (Capacitor as any).Plugins?.TcpPrinter;
       
-      // Send ZPL data
-      await TcpSocket.send({
-        client,
-        data: zplText,
-      });
-      
-      // Disconnect
-      await TcpSocket.disconnect({ client });
-      
+      if (!TcpPrinter) {
+        return { success: false, error: 'Plugin TcpPrinter non disponible. Reconstruisez l\'app avec setup-ios.sh.' };
+      }
+
+      await TcpPrinter.print({ ip, port, data: zplText });
       return { success: true };
     } catch (error) {
       return { success: false, error: String(error) };
@@ -128,13 +119,13 @@ export const testPrinterConnection = async (
 
   if (isCapacitor()) {
     try {
-      const { TcpSocket } = await import('@deedarb/capacitor-tcp-socket');
-      const { client } = await TcpSocket.connect({
-        ipAddress: ip,
-        port,
-        timeout: 5,
-      });
-      await TcpSocket.disconnect({ client });
+      const TcpPrinter = (Capacitor as any).Plugins?.TcpPrinter;
+      
+      if (!TcpPrinter) {
+        return { success: false, error: 'Plugin TcpPrinter non disponible' };
+      }
+
+      await TcpPrinter.testConnection({ ip, port });
       return { success: true };
     } catch (error) {
       return { success: false, error: String(error) };
