@@ -24,9 +24,6 @@
   "scripts": {
     "build": "echo 'no JS build needed'"
   },
-  "main": "dist/plugin.cjs.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
   "peerDependencies": {
     "@capacitor/core": "^8.0.0"
   }
