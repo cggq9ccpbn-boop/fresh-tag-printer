@@ -1,8 +1,18 @@
 // Native printing utilities for desktop (Electron) and mobile (Capacitor)
+// iOS uses a LOCAL TcpPrinter plugin (Swift/NWConnection), NOT an npm package.
 
-import { Capacitor } from '@capacitor/core';
-import { TcpSocket } from '@deedarb/capacitor-tcp-socket';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 
+// ── Local Capacitor plugin interface ──────────────────────────────────
+interface TcpPrinterPlugin {
+  print(options: { ip: string; port: number; data: string }): Promise<{ success: boolean }>;
+  testConnection(options: { ip: string; port: number }): Promise<{ connected: boolean }>;
+}
+
+// Register the LOCAL native plugin (maps to TcpPrinterPlugin.swift/.m)
+const TcpPrinter = registerPlugin<TcpPrinterPlugin>('TcpPrinter');
+
+// ── Electron API (desktop) ────────────────────────────────────────────
 interface PrinterInfo {
   ip: string;
   port: number;
@@ -22,6 +32,7 @@ declare global {
   }
 }
 
+// ── Platform detection ────────────────────────────────────────────────
 export const isElectron = (): boolean => {
   return typeof window !== 'undefined' && !!window.electronAPI?.isElectron;
 };
@@ -46,10 +57,8 @@ export const getPlatform = (): 'electron' | 'ios' | 'android' | 'web' => {
   return 'web';
 };
 
-/**
- * Classify a raw error into a user-friendly category.
- */
-export type PrintErrorKind = 'plugin_missing' | 'network' | 'send' | 'unknown';
+// ── Error handling ────────────────────────────────────────────────────
+export type PrintErrorKind = 'plugin_missing' | 'network' | 'send' | 'permission' | 'unknown';
 
 export const classifyError = (error: unknown): { kind: PrintErrorKind; message: string } => {
   const raw = String(error);
@@ -58,11 +67,20 @@ export const classifyError = (error: unknown): { kind: PrintErrorKind; message: 
     return {
       kind: 'plugin_missing',
       message:
-        'Le plugin natif TcpSocket n\'est pas chargé. Resynchronisez le projet iOS :\n' +
-        '1. npm install --legacy-peer-deps\n' +
-        '2. npm run build\n' +
-        '3. npx cap sync ios\n' +
-        '4. Dans Xcode : Product → Clean Build Folder puis ▶️ Run',
+        'Le plugin natif TcpPrinter n\'est pas chargé.\n' +
+        'Resynchronisez le projet iOS :\n' +
+        '1. git pull\n' +
+        '2. npm install --legacy-peer-deps\n' +
+        '3. npm run build\n' +
+        '4. rm -rf ios/ && ./setup-ios.sh\n' +
+        '5. Dans Xcode : Product → Clean Build Folder puis ▶️ Run',
+    };
+  }
+
+  if (raw.includes('denied') || raw.includes('Local Network') || raw.includes('permission')) {
+    return {
+      kind: 'permission',
+      message: 'Accès réseau local refusé par iOS. Allez dans Réglages → Ital Panini → Réseau local et activez l\'autorisation.',
     };
   }
 
@@ -71,7 +89,10 @@ export const classifyError = (error: unknown): { kind: PrintErrorKind; message: 
     raw.includes('ETIMEDOUT') ||
     raw.includes('ENETUNREACH') ||
     raw.includes('timeout') ||
-    raw.includes('Connection refused')
+    raw.includes('Connection refused') ||
+    raw.includes('Connection timeout') ||
+    raw.includes('Connection failed') ||
+    raw.includes('Connection waiting')
   ) {
     return {
       kind: 'network',
@@ -79,7 +100,7 @@ export const classifyError = (error: unknown): { kind: PrintErrorKind; message: 
     };
   }
 
-  if (raw.includes('send') || raw.includes('write')) {
+  if (raw.includes('send') || raw.includes('write') || raw.includes('Send error')) {
     return {
       kind: 'send',
       message: 'Connexion établie mais l\'envoi des données a échoué. Réessayez ou redémarrez l\'imprimante.',
@@ -89,6 +110,7 @@ export const classifyError = (error: unknown): { kind: PrintErrorKind; message: 
   return { kind: 'unknown', message: raw };
 };
 
+// ── Scanner (Electron only) ───────────────────────────────────────────
 export const scanForPrinters = async (
   port: number = 9100
 ): Promise<{ printers: PrinterInfo[]; subnet: string }> => {
@@ -102,23 +124,7 @@ export const scanForPrinters = async (
   return { printers: [], subnet: '' };
 };
 
-/**
- * Send raw data via TcpSocket plugin (Capacitor).
- */
-const sendViaTcpSocket = async (ip: string, port: number, data: string): Promise<void> => {
-  const { client } = await TcpSocket.connect({ ipAddress: ip, port, timeout: 5 });
-  try {
-    if (data) {
-      await TcpSocket.send({ client, data });
-    }
-  } finally {
-    await TcpSocket.disconnect({ client }).catch(() => {});
-  }
-};
-
-/**
- * Print raw ZPL data directly to a thermal printer via TCP.
- */
+// ── Print via TCP ─────────────────────────────────────────────────────
 export const printViaTcp = async (
   ip: string,
   port: number,
@@ -137,11 +143,11 @@ export const printViaTcp = async (
 
   if (isCapacitor()) {
     try {
-      console.log('[TcpSocket] Sending ZPL to', ip, ':', port, '- length:', zplData.length);
-      await sendViaTcpSocket(ip, port, zplData);
-      return { success: true };
+      console.log('[TcpPrinter] Sending ZPL to', ip, ':', port, '- length:', zplData.length);
+      const result = await TcpPrinter.print({ ip, port, data: zplData });
+      return { success: !!result.success };
     } catch (error) {
-      console.error('[TcpSocket] Print error:', error);
+      console.error('[TcpPrinter] Print error:', error);
       const classified = classifyError(error);
       return { success: false, error: classified.message, errorKind: classified.kind };
     }
@@ -150,9 +156,7 @@ export const printViaTcp = async (
   return { success: false, error: "L'impression TCP nécessite l'application native (iPad/desktop)", errorKind: 'unknown' };
 };
 
-/**
- * Test connection to a printer
- */
+// ── Test connection ───────────────────────────────────────────────────
 export const testPrinterConnection = async (
   ip: string,
   port: number
@@ -169,11 +173,11 @@ export const testPrinterConnection = async (
 
   if (isCapacitor()) {
     try {
-      console.log('[TcpSocket] Testing connection to', ip, ':', port);
-      await sendViaTcpSocket(ip, port, '');
-      return { success: true };
+      console.log('[TcpPrinter] Testing connection to', ip, ':', port);
+      const result = await TcpPrinter.testConnection({ ip, port });
+      return { success: !!result.connected };
     } catch (error) {
-      console.error('[TcpSocket] Test error:', error);
+      console.error('[TcpPrinter] Test error:', error);
       const classified = classifyError(error);
       return { success: false, error: classified.message, errorKind: classified.kind };
     }
@@ -182,9 +186,7 @@ export const testPrinterConnection = async (
   return { success: false, error: "Test de connexion disponible uniquement dans l'app native", errorKind: 'unknown' };
 };
 
-/**
- * Check if TcpSocket plugin is available (diagnostic)
- */
+// ── Diagnostic ────────────────────────────────────────────────────────
 export const diagnoseTcpPlugin = async (): Promise<{
   platform: string;
   pluginAvailable: boolean;
@@ -198,34 +200,30 @@ export const diagnoseTcpPlugin = async (): Promise<{
     return { platform, pluginAvailable: false, pluginRegistered: false, error: 'Pas en mode Capacitor (web ou desktop)' };
   }
 
-  const registered = Capacitor.isPluginAvailable('TcpSocket');
+  // Check if the local TcpPrinter plugin is registered
+  const registered = Capacitor.isPluginAvailable('TcpPrinter');
 
   if (!registered) {
     return {
       platform,
       pluginAvailable: false,
       pluginRegistered: false,
-      error: 'Plugin TcpSocket non enregistré dans le projet natif',
+      error: 'Plugin TcpPrinter non enregistré dans le projet natif',
       instructions:
-        'Le plugin natif n\'est pas inclus dans le build iOS.\n' +
-        'Cause probable : le projet iOS a été créé en mode SPM (Swift Package Manager),\n' +
-        'mais le plugin TCP ne supporte que CocoaPods.\n\n' +
+        'Le plugin natif local n\'est pas inclus dans le build iOS.\n\n' +
         'Solution :\n' +
-        '1. brew install cocoapods  (si pas déjà installé)\n' +
-        '2. rm -rf ios/\n' +
-        '3. npm install --legacy-peer-deps\n' +
-        '4. npm run build\n' +
-        '5. npx cap add ios --packagemanager cocoapods\n' +
-        '6. npx cap sync ios\n' +
-        '7. npx cap open ios\n' +
-        '8. Dans Xcode : Product → Clean Build Folder → ▶️ Run',
+        '1. git pull (pour récupérer les derniers fichiers)\n' +
+        '2. npm install --legacy-peer-deps\n' +
+        '3. npm run build\n' +
+        '4. rm -rf ios/\n' +
+        '5. ./setup-ios.sh\n' +
+        '6. Dans Xcode : Product → Clean Build Folder → ▶️ Run',
     };
   }
 
-  // Plugin is registered, try a quick connect to verify it's truly functional
+  // Plugin is registered JS-side, test if native side responds
   try {
-    await TcpSocket.connect({ ipAddress: '0.0.0.0', port: 1, timeout: 1 });
-    // If this succeeds (unlikely), plugin works
+    await TcpPrinter.testConnection({ ip: '0.0.0.0', port: 1 });
     return { platform, pluginAvailable: true, pluginRegistered: true };
   } catch (error) {
     const raw = String(error);
@@ -236,17 +234,14 @@ export const diagnoseTcpPlugin = async (): Promise<{
         pluginRegistered: true,
         error: 'Plugin enregistré côté JS mais absent côté natif iOS',
         instructions:
-          'Le plugin JS est présent mais le code natif manque.\n' +
-          'Cause : le projet iOS utilise SPM au lieu de CocoaPods.\n\n' +
+          'Le fichier Swift du plugin n\'est pas dans le build Xcode.\n\n' +
           'Solution :\n' +
-          '1. brew install cocoapods  (si pas déjà installé)\n' +
+          '1. git pull\n' +
           '2. rm -rf ios/\n' +
-          '3. npm install --legacy-peer-deps\n' +
-          '4. npm run build\n' +
-          '5. npx cap add ios --packagemanager cocoapods\n' +
-          '6. npx cap sync ios\n' +
-          '7. npx cap open ios\n' +
-          '8. Product → Clean Build Folder → ▶️ Run',
+          '3. ./setup-ios.sh\n' +
+          '4. Dans Xcode : Product → Clean Build Folder → ▶️ Run\n\n' +
+          'Le script setup-ios.sh copie automatiquement les fichiers\n' +
+          'TcpPrinterPlugin.swift et .m dans le projet iOS.',
       };
     }
     // Any other error means plugin IS functional (network error = plugin works)
