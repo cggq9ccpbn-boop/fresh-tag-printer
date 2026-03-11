@@ -26,7 +26,11 @@ export const isElectron = (): boolean => {
 };
 
 export const isCapacitor = (): boolean => {
-  return Capacitor.isNativePlatform();
+  try {
+    return Capacitor.isNativePlatform();
+  } catch {
+    return false;
+  }
 };
 
 export const canPrintNatively = (): boolean => {
@@ -59,6 +63,7 @@ export const scanForPrinters = async (
 
 /**
  * Print data directly to a thermal printer via TCP
+ * Uses capacitor-tcp-connect on iOS/Android, Electron IPC on desktop
  */
 export const printViaTcp = async (
   ip: string,
@@ -76,13 +81,15 @@ export const printViaTcp = async (
 
   if (isCapacitor()) {
     try {
-      const { CapacitorZebraPrinter } = await import('capacitor-zebra-printer');
-      await CapacitorZebraPrinter.print({
+      // Decode base64 data back to ZPL text for TCP sending
+      const zplText = decodeURIComponent(escape(atob(data)));
+      const { TcpConnect } = await import('capacitor-tcp-connect');
+      const result = await TcpConnect.open({
         ip,
-        port,
-        zpl: data,
+        port: String(port),
+        text: zplText,
       });
-      return { success: true };
+      return { success: result.value === 'success' || !!result.value };
     } catch (error) {
       return { success: false, error: String(error) };
     }
@@ -109,14 +116,13 @@ export const testPrinterConnection = async (
 
   if (isCapacitor()) {
     try {
-      // Test by sending an empty ZPL command
-      const { CapacitorZebraPrinter } = await import('capacitor-zebra-printer');
-      await CapacitorZebraPrinter.print({
+      const { TcpConnect } = await import('capacitor-tcp-connect');
+      const result = await TcpConnect.open({
         ip,
-        port,
-        zpl: '',
+        port: String(port),
+        text: '',
       });
-      return { success: true };
+      return { success: result.value === 'success' || !!result.value };
     } catch (error) {
       return { success: false, error: String(error) };
     }
