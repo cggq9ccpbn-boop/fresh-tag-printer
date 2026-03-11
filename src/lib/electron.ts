@@ -1,45 +1,7 @@
 // Native printing utilities for desktop (Electron) and mobile (Capacitor)
 
-import { Capacitor, registerPlugin } from '@capacitor/core';
-import { SocketConnect } from 'capacitor-tcp-connect';
-
-interface TcpPrinterPlugin {
-  print(options: { ip: string; port: number; data: string }): Promise<{ success: boolean }>;
-  testConnection(options: { ip: string; port: number }): Promise<{ connected: boolean }>;
-}
-
-// Lazy plugin registration — only resolved when first accessed
-let _tcpPrinter: TcpPrinterPlugin | null = null;
-const getTcpPrinter = (): TcpPrinterPlugin => {
-  if (!_tcpPrinter) {
-    _tcpPrinter = registerPlugin<TcpPrinterPlugin>('TcpPrinter');
-  }
-  return _tcpPrinter;
-};
-
-const normalizeNativeError = (error: unknown): { code?: string; message: string } => {
-  if (typeof error === 'object' && error !== null) {
-    const maybeError = error as { code?: string; message?: string };
-    return {
-      code: maybeError.code,
-      message: maybeError.message ?? JSON.stringify(error),
-    };
-  }
-  return { message: String(error) };
-};
-
-const isUnimplementedError = (error: { code?: string; message: string }): boolean => {
-  const message = error.message.toLowerCase();
-  return error.code === 'UNIMPLEMENTED' || message.includes('unimplemented') || message.includes('not implemented');
-};
-
-const sendViaSocketConnect = async (ip: string, port: number, text: string): Promise<void> => {
-  await SocketConnect.open({
-    ip,
-    port: String(port),
-    text,
-  });
-};
+import { Capacitor } from '@capacitor/core';
+import { TcpSocket } from '@deedarb/capacitor-tcp-socket';
 
 interface PrinterInfo {
   ip: string;
@@ -98,6 +60,21 @@ export const scanForPrinters = async (
 };
 
 /**
+ * Send raw data via TcpSocket plugin (Capacitor).
+ * Data is sent as plain text string.
+ */
+const sendViaTcpSocket = async (ip: string, port: number, data: string): Promise<void> => {
+  const { client } = await TcpSocket.connect({ ipAddress: ip, port, timeout: 5 });
+  try {
+    if (data) {
+      await TcpSocket.send({ client, data });
+    }
+  } finally {
+    await TcpSocket.disconnect({ client }).catch(() => {});
+  }
+};
+
+/**
  * Print raw ZPL data directly to a thermal printer via TCP.
  */
 export const printViaTcp = async (
@@ -117,26 +94,12 @@ export const printViaTcp = async (
 
   if (isCapacitor()) {
     try {
-      console.log('[TcpPrinter] Sending ZPL to', ip, ':', port, '- length:', zplData.length);
-      await getTcpPrinter().print({ ip, port, data: zplData });
+      console.log('[TcpSocket] Sending ZPL to', ip, ':', port, '- length:', zplData.length);
+      await sendViaTcpSocket(ip, port, zplData);
       return { success: true };
     } catch (error) {
-      const nativeError = normalizeNativeError(error);
-
-      if (isUnimplementedError(nativeError) && Capacitor.isPluginAvailable('SocketConnect')) {
-        try {
-          console.warn('[TcpPrinter] Plugin TcpPrinter indisponible, fallback sur SocketConnect');
-          await sendViaSocketConnect(ip, port, zplData);
-          return { success: true };
-        } catch (fallbackError) {
-          const fallbackNativeError = normalizeNativeError(fallbackError);
-          console.error('[TcpPrinter] Fallback print error:', fallbackNativeError);
-          return { success: false, error: fallbackNativeError.message };
-        }
-      }
-
-      console.error('[TcpPrinter] Print error:', nativeError);
-      return { success: false, error: nativeError.message };
+      console.error('[TcpSocket] Print error:', error);
+      return { success: false, error: String(error) };
     }
   }
 
@@ -161,26 +124,12 @@ export const testPrinterConnection = async (
 
   if (isCapacitor()) {
     try {
-      console.log('[TcpPrinter] Testing connection to', ip, ':', port);
-      await getTcpPrinter().testConnection({ ip, port });
+      console.log('[TcpSocket] Testing connection to', ip, ':', port);
+      await sendViaTcpSocket(ip, port, '');
       return { success: true };
     } catch (error) {
-      const nativeError = normalizeNativeError(error);
-
-      if (isUnimplementedError(nativeError) && Capacitor.isPluginAvailable('SocketConnect')) {
-        try {
-          console.warn('[TcpPrinter] Plugin TcpPrinter indisponible, fallback test via SocketConnect');
-          await sendViaSocketConnect(ip, port, '');
-          return { success: true };
-        } catch (fallbackError) {
-          const fallbackNativeError = normalizeNativeError(fallbackError);
-          console.error('[TcpPrinter] Fallback test error:', fallbackNativeError);
-          return { success: false, error: fallbackNativeError.message };
-        }
-      }
-
-      console.error('[TcpPrinter] Test error:', nativeError);
-      return { success: false, error: nativeError.message };
+      console.error('[TcpSocket] Test error:', error);
+      return { success: false, error: String(error) };
     }
   }
 
@@ -188,7 +137,7 @@ export const testPrinterConnection = async (
 };
 
 /**
- * Check if at least one native TCP plugin is available (diagnostic)
+ * Check if TcpSocket plugin is available (diagnostic)
  */
 export const diagnoseTcpPlugin = async (): Promise<{ platform: string; pluginAvailable: boolean; error?: string }> => {
   const platform = getPlatform();
@@ -196,16 +145,14 @@ export const diagnoseTcpPlugin = async (): Promise<{ platform: string; pluginAva
     return { platform, pluginAvailable: false, error: 'Not running on Capacitor' };
   }
 
-  const tcpPrinterAvailable = Capacitor.isPluginAvailable('TcpPrinter');
-  const socketConnectAvailable = Capacitor.isPluginAvailable('SocketConnect');
-
-  if (tcpPrinterAvailable || socketConnectAvailable) {
+  const available = Capacitor.isPluginAvailable('TcpSocket');
+  if (available) {
     return { platform, pluginAvailable: true };
   }
 
   return {
     platform,
     pluginAvailable: false,
-    error: 'Aucun plugin TCP natif détecté (TcpPrinter / SocketConnect)',
+    error: 'Plugin TcpSocket non détecté',
   };
 };
