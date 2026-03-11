@@ -2,6 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Home, Package, Settings, Printer } from 'lucide-react';
 import { usePrintQueue } from '@/hooks/usePrintQueue';
+import logo from '@/assets/logo.png';
 
 const navigation = [
   { name: 'Accueil', href: '/', icon: Home },
