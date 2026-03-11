@@ -1,58 +1,39 @@
 
 
-## Diagnostic: GitHub Actions "The operation was canceled"
+## Diagnostic
 
-Le `.gitignore` est deja correct avec toutes les exclusions necessaires. Le probleme n'est pas la.
+Le plugin `@deedarb/capacitor-tcp-socket` v7.2.1 est conçu pour **Capacitor 7** et ne fournit **pas de support Swift Package Manager (SPM)**. Or, **Capacitor 8 utilise SPM par défaut** pour iOS. Résultat : quand tu fais `npx cap add ios`, le projet iOS est créé en mode SPM, et le plugin TCP n'est jamais inclus dans le build natif → `UNIMPLEMENTED`.
 
-### Cause probable
+## Solution
 
-L'erreur "The operation was canceled" qui survient sur **plusieurs etapes** (checkout ET setup-node) indique generalement :
+Forcer l'utilisation de **CocoaPods** comme gestionnaire de dépendances iOS au lieu de SPM. C'est un changement dans la procédure de build, pas dans le code.
 
-1. **Minutes GitHub Actions epuisees** -- Les comptes gratuits ont 2000 minutes/mois. Si elles sont epuisees, les jobs sont annules automatiquement.
-2. **Timeout du workflow** -- Le job depasse le temps maximum autorise.
+### Changements
 
-### Verification immediate (a faire sur GitHub)
+**1. `setup-ios.sh`** — Remplacer `npx cap add ios` par `npx cap add ios --packagemanager CocoaPods`
 
-1. Va dans **Settings > Billing and plans > Plans and usage** sur GitHub
-2. Verifie la section **Actions** -- si les minutes sont a 0, c'est la cause
+**2. `CAPACITOR.md`** — Mettre à jour toutes les commandes `npx cap add ios` avec le flag `--packagemanager CocoaPods` et ajouter une note expliquant pourquoi (plugin TCP pas encore compatible SPM)
 
-### Correction du workflow
+**3. Instructions de nettoyage dans le diagnostic** (`src/lib/electron.ts`) — Mettre à jour les instructions affichées pour inclure `--packagemanager CocoaPods`
 
-Ajouter un `timeout-minutes` au job pour eviter les blocages, et retirer le `cache: 'npm'` du setup-node qui peut causer des timeouts sur Windows :
+**4. `src/components/settings/PrinterScanner.tsx`** — Mettre à jour les instructions de resync affichées dans le diagnostic
 
-```yaml
-jobs:
-  build:
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            platform: win
-          - os: macos-latest
-            platform: mac
-          - os: ubuntu-latest
-            platform: linux
+### Prérequis sur ton Mac
 
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+Tu dois avoir **CocoaPods** installé :
+```bash
+brew install cocoapods
 ```
 
-Changements :
-- Ajout de `timeout-minutes: 30` au job build
-- Retrait de `cache: 'npm'` qui peut bloquer sur certains runners Windows
+### Après implémentation — commandes à lancer
 
-### Fichier modifie
-
-| Fichier | Modification |
-|---|---|
-| `.github/workflows/electron-build.yml` | Ajout timeout + retrait cache npm |
+```bash
+rm -rf ios/
+npm install --legacy-peer-deps
+npm run build
+npx cap add ios --packagemanager CocoaPods
+npx cap sync ios
+npx cap open ios
+```
+Puis dans Xcode : Product → Clean Build Folder → ▶️ Run
 
