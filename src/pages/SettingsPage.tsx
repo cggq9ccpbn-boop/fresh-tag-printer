@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Building2, Phone, FileText, Printer, Upload, X, Save, Tag, Eye, Camera, MapPin, Mail, Hash, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { PrinterScanner } from '@/components/settings/PrinterScanner';
+import { ProductImportExport } from '@/components/settings/ProductImportExport';
 import { LabelFormatSettings } from '@/components/settings/LabelFormatSettings';
 import { LabelPreview } from '@/components/print/LabelPreview';
 import { Product } from '@/types';
@@ -96,6 +97,11 @@ export default function SettingsPage() {
             <LabelPreview product={sampleProduct} settings={settings} productionDate={new Date()} dlcDate={new Date(Date.now() + 3 * 86400000)} />
           </div>
         </div>
+      </SectionRow>
+
+      {/* Import/Export */}
+      <SectionRow icon="📦" title="Produits" subtitle="Importer / Exporter" open={openSection === 'products'} onToggle={() => toggle('products')}>
+        <ProductImportExport />
       </SectionRow>
 
       {/* Save */}
