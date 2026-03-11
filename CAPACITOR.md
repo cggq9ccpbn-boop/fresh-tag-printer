@@ -1,5 +1,22 @@
 # Application Mobile Capacitor (iOS/Android)
 
+## ⚠️ Note importante — CocoaPods obligatoire pour iOS
+
+Le plugin d'impression TCP (`@deedarb/capacitor-tcp-socket`) ne supporte **pas** Swift Package Manager (SPM).
+Capacitor 8 utilise SPM par défaut, ce qui empêche le plugin d'être inclus dans le build natif.
+
+**Il faut forcer CocoaPods** lors de l'ajout de la plateforme iOS :
+```bash
+npx cap add ios --packagemanager cocoapods
+```
+
+Prérequis : installer CocoaPods sur votre Mac :
+```bash
+brew install cocoapods
+```
+
+---
+
 ## 🚀 Démarrage rapide (Mac + Xcode)
 
 Après avoir cloné le projet depuis GitHub :
@@ -19,7 +36,7 @@ Après avoir cloné le projet depuis GitHub :
 
 > **Si Xcode ne s'ouvre pas automatiquement** : lancez `npx cap open ios` ou ouvrez manuellement le fichier `ios/App/App.xcworkspace`.
 
-Ce script installe tout, génère le dossier `ios/`, et ouvre Xcode automatiquement.
+Ce script installe tout, génère le dossier `ios/` avec CocoaPods, et ouvre Xcode automatiquement.
 
 Dans Xcode :
 1. Sélectionnez votre **Team** (Signing & Capabilities)
@@ -32,7 +49,7 @@ Dans Xcode :
 
 L'application utilise le plugin **`@deedarb/capacitor-tcp-socket`** pour imprimer directement sur les imprimantes thermiques réseau via TCP.
 
-> ⚠️ Ce plugin nécessite un build natif (Capacitor). L'impression ne fonctionne **pas** en mode web/navigateur.
+> ⚠️ Ce plugin nécessite un build natif (Capacitor) avec **CocoaPods**. L'impression ne fonctionne **pas** en mode web/navigateur ni en mode SPM.
 
 ### Configuration de l'imprimante
 
@@ -63,7 +80,7 @@ npx cap open ios
 
 **Dans Xcode :**
 1. **Product → Clean Build Folder** (⇧⌘K)
-2. Sélectionnez votre appareil iOS
+2. Sélectionnez votre appareil iOS (iPhone ou iPad)
 3. Cliquez **▶️ Run**
 
 ### Vérification du plugin
@@ -78,30 +95,33 @@ Après le sync, vérifiez dans Xcode que le plugin natif est présent :
 
 Si le diagnostic affiche `UNIMPLEMENTED` ou que l'impression échoue avec ce code :
 
-**Le plugin natif n'est pas chargé dans le build iOS.** C'est un problème de synchronisation, pas de code.
+**Le plugin natif n'est pas chargé dans le build iOS.** Cause probable : le projet iOS a été créé en mode SPM au lieu de CocoaPods.
 
 ### Solution complète :
 
 ```bash
-# Supprimer le dossier iOS et repartir proprement
+# 1. Installer CocoaPods si nécessaire
+brew install cocoapods
+
+# 2. Supprimer le dossier iOS et repartir proprement
 rm -rf ios/
 
-# Réinstaller
+# 3. Réinstaller les dépendances
 npm install --legacy-peer-deps
 npm run build
 
-# Recréer le projet iOS
-npx cap add ios
+# 4. Recréer le projet iOS avec CocoaPods
+npx cap add ios --packagemanager cocoapods
 npx cap sync ios
 
-# Ouvrir Xcode
+# 5. Ouvrir Xcode
 npx cap open ios
 ```
 
 Dans Xcode :
 1. **Product → Clean Build Folder** (⇧⌘K)
 2. Sélectionnez votre Team (Signing & Capabilities)
-3. Branchez l'iPad/iPhone
+3. Branchez l'iPhone/iPad
 4. **▶️ Run**
 
 ---
@@ -110,7 +130,7 @@ Dans Xcode :
 
 ### Prérequis
 
-- **iOS** : Mac avec Xcode installé (disponible sur l'App Store)
+- **iOS** : Mac avec Xcode + CocoaPods installés
 - **Android** : Android Studio installé
 
 ### Étapes
@@ -128,7 +148,7 @@ Dans Xcode :
 
 3. **Ajouter les plateformes natives**
    ```bash
-   npx cap add ios
+   npx cap add ios --packagemanager cocoapods
    npx cap add android
    ```
 

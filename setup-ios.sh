@@ -10,8 +10,8 @@ npm run build
 if [ -d "ios" ]; then
   echo "📱 Le dossier ios/ existe déjà, synchronisation..."
 else
-  echo "📱 Ajout de la plateforme iOS..."
-  npx cap add ios
+  echo "📱 Ajout de la plateforme iOS (CocoaPods)..."
+  npx cap add ios --packagemanager cocoapods
 fi
 
 echo "🔄 Synchronisation avec Xcode..."
