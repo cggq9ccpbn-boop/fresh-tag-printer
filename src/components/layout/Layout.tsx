@@ -9,7 +9,8 @@ export function Layout() {
       <Sidebar />
       <MobileNav />
       <main className="lg:pl-64">
-        <div className="min-h-screen pt-18 lg:pt-0 px-4 pb-24 lg:pb-8 lg:px-8">
+        <div className="min-h-screen lg:pt-0 px-4 pb-24 lg:pb-8 lg:px-8"
+          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 3.5rem)' }}>
           <Outlet />
         </div>
       </main>
