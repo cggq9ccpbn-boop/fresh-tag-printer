@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { isElectron, scanForPrinters, testPrinterConnection } from '@/lib/electron';
-import { Loader2, Search, Wifi, WifiOff, CheckCircle2, Plug } from 'lucide-react';
+import { isElectron, scanForPrinters, testPrinterConnection, diagnoseTcpPlugin, getPlatform } from '@/lib/electron';
+import { Loader2, Search, Wifi, WifiOff, CheckCircle2, Plug, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PrinterScannerProps {
@@ -16,6 +16,7 @@ interface PrinterScannerProps {
 export function PrinterScanner({ printerIp, printerPort, onSelect }: PrinterScannerProps) {
   const [scanning, setScanning] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [diagnosing, setDiagnosing] = useState(false);
   const [printers, setPrinters] = useState<{ ip: string; port: number }[]>([]);
   const [scanned, setScanned] = useState(false);
   const [manualIp, setManualIp] = useState(printerIp);
@@ -71,6 +72,23 @@ export function PrinterScanner({ printerIp, printerPort, onSelect }: PrinterScan
       toast.error('Erreur de connexion');
     } finally {
       setTesting(false);
+    }
+  };
+
+  const handleDiagnose = async () => {
+    setDiagnosing(true);
+    try {
+      const result = await diagnoseTcpPlugin();
+      const platform = getPlatform();
+      if (result.pluginAvailable) {
+        toast.success(`Plateforme : ${platform} — Plugin TcpPrinter : ✅ détecté`);
+      } else {
+        toast.error(`Plateforme : ${platform} — Plugin TcpPrinter : ❌ non détecté${result.error ? ` (${result.error})` : ''}`);
+      }
+    } catch {
+      toast.error('Erreur lors du diagnostic');
+    } finally {
+      setDiagnosing(false);
     }
   };
 
@@ -181,7 +199,7 @@ export function PrinterScanner({ printerIp, printerPort, onSelect }: PrinterScan
             />
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={handleManualSave} className="gap-2">
             <Plug className="h-4 w-4" />
             Enregistrer
@@ -199,6 +217,20 @@ export function PrinterScanner({ printerIp, printerPort, onSelect }: PrinterScan
               <Wifi className="h-4 w-4" />
             )}
             Tester la connexion
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleDiagnose}
+            disabled={diagnosing}
+            className="gap-2"
+          >
+            {diagnosing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Activity className="h-4 w-4" />
+            )}
+            Diagnostic
           </Button>
         </div>
       </div>
