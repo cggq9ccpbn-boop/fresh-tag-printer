@@ -57,13 +57,26 @@ echo ""
 echo "🔄 Synchronisation..."
 npx cap sync ios
 
-# ── Copie du plugin TcpPrinter directement dans le projet Xcode ──
+# ── Copie du plugin TcpPrinter et enregistrement manuel du bridge Capacitor ──
 SOURCES_DIR="ios/App/App/Sources"
-mkdir -p "$SOURCES_DIR"
-echo "📦 Copie du plugin TcpPrinter dans ios/App/App/Sources/..."
+APP_DIR="ios/App/App"
+STORYBOARD="ios/App/App/Base.lproj/Main.storyboard"
+mkdir -p "$SOURCES_DIR" "$APP_DIR"
+echo "📦 Copie du plugin TcpPrinter dans le projet iOS..."
 cp plugins/tcp-printer/ios/Sources/TcpPrinterPlugin.swift "$SOURCES_DIR/TcpPrinterPlugin.swift"
 cp plugins/tcp-printer/ios/Sources/TcpPrinterPlugin.m "$SOURCES_DIR/TcpPrinterPlugin.m"
-echo "   → Plugin TcpPrinter copié ✅"
+cp ios-plugins/TcpPrinterBridgeViewController.swift "$APP_DIR/TcpPrinterBridgeViewController.swift"
+echo "   → Sources natives copiées ✅"
+
+if [ -f "$STORYBOARD" ]; then
+  if ! grep -q "TcpPrinterBridgeViewController" "$STORYBOARD"; then
+    echo "🔌 Configuration du Bridge View Controller Capacitor..."
+    perl -0pi -e 's/customClass="CAPBridgeViewController"/customClass="TcpPrinterBridgeViewController"/g; s/customModule="Capacitor"/customModule="App" customModuleProvider="target"/g' "$STORYBOARD"
+    echo "   → Enregistrement manuel du plugin activé ✅"
+  else
+    echo "   → Bridge View Controller déjà configuré ✅"
+  fi
+fi
 
 # ── Permissions réseau local dans Info.plist ──
 PLIST="ios/App/App/Info.plist"
