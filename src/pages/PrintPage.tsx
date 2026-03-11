@@ -64,7 +64,7 @@ export default function PrintPage() {
       const zpl = generateZpl({ product, settings, productionDate: new Date(item.productionDate), dlcDate: new Date(item.dlcDate) });
 
       for (let i = 0; i < item.quantity; i++) {
-        const result = await printViaTcp(settings.printerIp, settings.printerPort, data);
+        const result = await printViaTcp(settings.printerIp, settings.printerPort, zpl);
         if (result.success) { successCount++; } else { errorCount++; toast.error(`Erreur: ${result.error}`); break; }
       }
       if (errorCount > 0) break;
