@@ -5,10 +5,8 @@
 Après avoir connecté le repo GitHub, ouvrez le **Terminal** sur votre Mac et lancez :
 
 ```bash
-git clone https://github.com/VOTRE_USER/VOTRE_REPO.git fresh-tag-printer && cd fresh-tag-printer && chmod +x setup-ios.sh && ./setup-ios.sh
+git clone https://github.com/cggq9ccpbn-boop/fresh-tag-printer.git fresh-tag-printer && cd fresh-tag-printer && chmod +x setup-ios.sh && ./setup-ios.sh
 ```
-
-> **Remplacez** `VOTRE_USER/VOTRE_REPO` par l'URL réelle de votre dépôt GitHub.
 
 Si le repo est déjà cloné :
 
