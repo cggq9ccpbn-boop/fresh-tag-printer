@@ -85,8 +85,7 @@ export const printViaTcp = async (
       const zplText = decodeURIComponent(escape(atob(data)));
       
       // Use custom native TcpPrinter plugin (Swift NWConnection on iOS)
-      const { Plugins } = await import('@capacitor/core');
-      const TcpPrinter = (Plugins as any).TcpPrinter;
+      const TcpPrinter = (Capacitor as any).Plugins?.TcpPrinter;
       
       if (!TcpPrinter) {
         return { success: false, error: 'Plugin TcpPrinter non disponible. Reconstruisez l\'app avec setup-ios.sh.' };
