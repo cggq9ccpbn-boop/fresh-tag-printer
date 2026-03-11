@@ -19,10 +19,8 @@ export function Sidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border hidden lg:block">
       <div className="flex h-16 items-center gap-3 px-6 border-b border-border">
-        <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-sm">🏷️</span>
-        </div>
-        <span className="font-semibold text-foreground">Étiquettes Pro</span>
+        <img src={logo} alt="Ital Panini" className="h-9 w-9 rounded-lg object-contain" />
+        <span className="font-semibold text-foreground">Ital Panini</span>
       </div>
       
       <nav className="flex flex-col gap-1 p-4">

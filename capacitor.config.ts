@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.freshtagprinter',
-  appName: 'fresh-tag-printer',
+  appId: 'app.lovable.italpanini',
+  appName: 'Ital Panini',
   webDir: 'dist',
 };
 
