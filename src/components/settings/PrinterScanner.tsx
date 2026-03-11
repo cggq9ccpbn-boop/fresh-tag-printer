@@ -91,7 +91,7 @@ export function PrinterScanner({ printerIp, printerPort, onSelect }: PrinterScan
       const result = await diagnoseTcpPlugin();
       setDiagnosticResult(result);
       if (result.pluginAvailable) {
-        toast.success(`✅ Plateforme : ${result.platform} — Plugin TcpSocket fonctionnel`);
+        toast.success(`✅ Plateforme : ${result.platform} — Plugin TcpPrinter fonctionnel`);
       } else {
         toast.error(`❌ Plugin non fonctionnel — voir les détails ci-dessous`, { duration: 6000 });
       }
