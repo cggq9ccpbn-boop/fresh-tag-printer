@@ -52,16 +52,13 @@ export const getPlatform = (): 'electron' | 'ios' | 'android' | 'web' => {
   return 'web';
 };
 
-/**
- * Scan the local network for printers on the given port
- */
 export const scanForPrinters = async (
   port: number = 9100
 ): Promise<{ printers: PrinterInfo[]; subnet: string }> => {
   if (isElectron()) {
     try {
       return await window.electronAPI!.scanNetwork({ port, timeout: 1000 });
-    } catch (error) {
+    } catch {
       return { printers: [], subnet: '' };
     }
   }
@@ -69,17 +66,19 @@ export const scanForPrinters = async (
 };
 
 /**
- * Print data directly to a thermal printer via TCP.
- * Uses custom native TcpPrinter plugin on iOS/Android, Electron IPC on desktop.
+ * Print raw ZPL data directly to a thermal printer via TCP.
+ * On Capacitor (iOS/Android): sends raw ZPL string to native plugin.
+ * On Electron: sends base64-encoded data via IPC.
  */
 export const printViaTcp = async (
   ip: string,
   port: number,
-  data: string
+  zplData: string
 ): Promise<{ success: boolean; error?: string }> => {
   if (isElectron()) {
     try {
-      const result = await window.electronAPI!.printTcp({ ip, port, data });
+      const base64 = btoa(unescape(encodeURIComponent(zplData)));
+      const result = await window.electronAPI!.printTcp({ ip, port, data: base64 });
       return { success: result.success };
     } catch (error) {
       return { success: false, error: String(error) };
@@ -88,15 +87,16 @@ export const printViaTcp = async (
 
   if (isCapacitor()) {
     try {
-      const zplText = decodeURIComponent(escape(atob(data)));
-      await TcpPrinter.print({ ip, port, data: zplText });
+      console.log('[TcpPrinter] Sending ZPL to', ip, ':', port, '- length:', zplData.length);
+      await TcpPrinter.print({ ip, port, data: zplData });
       return { success: true };
     } catch (error) {
+      console.error('[TcpPrinter] Print error:', error);
       return { success: false, error: String(error) };
     }
   }
 
-  return { success: false, error: 'L\'impression TCP nécessite l\'application native (iPad/desktop)' };
+  return { success: false, error: "L'impression TCP nécessite l'application native (iPad/desktop)" };
 };
 
 /**
@@ -117,12 +117,14 @@ export const testPrinterConnection = async (
 
   if (isCapacitor()) {
     try {
+      console.log('[TcpPrinter] Testing connection to', ip, ':', port);
       await TcpPrinter.testConnection({ ip, port });
       return { success: true };
     } catch (error) {
+      console.error('[TcpPrinter] Test error:', error);
       return { success: false, error: String(error) };
     }
   }
 
-  return { success: false, error: 'Test de connexion disponible uniquement dans l\'app native' };
+  return { success: false, error: "Test de connexion disponible uniquement dans l'app native" };
 };

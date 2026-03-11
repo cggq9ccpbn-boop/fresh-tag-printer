@@ -62,7 +62,6 @@ export default function PrintPage() {
       const product = getProduct(item.productId);
       if (!product) continue;
       const zpl = generateZpl({ product, settings, productionDate: new Date(item.productionDate), dlcDate: new Date(item.dlcDate) });
-      const data = zplToBase64(zpl);
 
       for (let i = 0; i < item.quantity; i++) {
         const result = await printViaTcp(settings.printerIp, settings.printerPort, data);
