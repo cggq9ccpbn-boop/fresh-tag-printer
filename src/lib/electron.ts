@@ -83,8 +83,8 @@ export const printViaTcp = async (
     try {
       // Decode base64 data back to ZPL text for TCP sending
       const zplText = decodeURIComponent(escape(atob(data)));
-      const { TcpConnect } = await import('capacitor-tcp-connect');
-      const result = await TcpConnect.open({
+      const { SocketConnect } = await import('capacitor-tcp-connect');
+      const result = await SocketConnect.open({
         ip,
         port: String(port),
         text: zplText,
