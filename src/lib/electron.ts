@@ -207,12 +207,18 @@ export const diagnoseTcpPlugin = async (): Promise<{
       pluginRegistered: false,
       error: 'Plugin TcpSocket non enregistré dans le projet natif',
       instructions:
-        'Resynchronisez le projet :\n' +
-        '1. npm install --legacy-peer-deps\n' +
-        '2. npm run build\n' +
-        '3. npx cap sync ios\n' +
-        '4. Dans Xcode : Product → Clean Build Folder\n' +
-        '5. Relancez l\'app sur l\'iPad',
+        'Le plugin natif n\'est pas inclus dans le build iOS.\n' +
+        'Cause probable : le projet iOS a été créé en mode SPM (Swift Package Manager),\n' +
+        'mais le plugin TCP ne supporte que CocoaPods.\n\n' +
+        'Solution :\n' +
+        '1. brew install cocoapods  (si pas déjà installé)\n' +
+        '2. rm -rf ios/\n' +
+        '3. npm install --legacy-peer-deps\n' +
+        '4. npm run build\n' +
+        '5. npx cap add ios --packagemanager cocoapods\n' +
+        '6. npx cap sync ios\n' +
+        '7. npx cap open ios\n' +
+        '8. Dans Xcode : Product → Clean Build Folder → ▶️ Run',
     };
   }
 
