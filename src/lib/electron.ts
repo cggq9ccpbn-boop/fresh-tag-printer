@@ -117,17 +117,12 @@ export const testPrinterConnection = async (
 
   if (isCapacitor()) {
     try {
-      const TcpPrinter = (Capacitor as any).Plugins?.TcpPrinter;
-      
-      if (!TcpPrinter) {
-        return { success: false, error: 'Plugin TcpPrinter non disponible' };
-      }
-
       await TcpPrinter.testConnection({ ip, port });
       return { success: true };
     } catch (error) {
       return { success: false, error: String(error) };
     }
+  }
   }
 
   return { success: false, error: 'Test de connexion disponible uniquement dans l\'app native' };
