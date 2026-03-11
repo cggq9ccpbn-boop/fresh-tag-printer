@@ -91,7 +91,7 @@ export function PrinterScanner({ printerIp, printerPort, onSelect }: PrinterScan
       const result = await diagnoseTcpPlugin();
       setDiagnosticResult(result);
       if (result.pluginAvailable) {
-        toast.success(`✅ Plateforme : ${result.platform} — Plugin TcpSocket fonctionnel`);
+        toast.success(`✅ Plateforme : ${result.platform} — Plugin TcpPrinter fonctionnel`);
       } else {
         toast.error(`❌ Plugin non fonctionnel — voir les détails ci-dessous`, { duration: 6000 });
       }
@@ -253,7 +253,7 @@ export function PrinterScanner({ printerIp, printerPort, onSelect }: PrinterScan
               <AlertTriangle className="h-5 w-5 text-red-600" />
             )}
             <p className="text-sm font-semibold">
-              {diagnosticResult.pluginAvailable ? 'Plugin TcpSocket fonctionnel ✅' : 'Plugin TcpSocket non fonctionnel ❌'}
+              {diagnosticResult.pluginAvailable ? 'Plugin TcpPrinter fonctionnel ✅' : 'Plugin TcpPrinter non fonctionnel ❌'}
             </p>
           </div>
           <div className="text-xs space-y-1 text-muted-foreground">
