@@ -8,9 +8,9 @@ export function Layout() {
     <div className="min-h-screen bg-background">
       <Sidebar />
       <MobileNav />
-      <main className="lg:pl-64">
-        <div className="min-h-screen lg:pt-0 px-4 pb-24 lg:pb-8 lg:px-8"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 3.5rem)' }}>
+      <main className="lg:pl-60">
+        <div className="min-h-screen lg:pt-0 px-4 pb-20 lg:pb-8 lg:px-8"
+          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 3rem)' }}>
           <Outlet />
         </div>
       </main>

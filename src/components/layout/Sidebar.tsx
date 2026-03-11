@@ -17,13 +17,13 @@ export function Sidebar() {
   const queueCount = getQueueCount();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border/60 hidden lg:flex lg:flex-col shadow-soft">
-      <div className="flex h-16 items-center gap-3 px-6 border-b border-border/60">
-        <img src={logo} alt="Ital Panini" className="h-9 w-9 rounded-xl object-contain" />
-        <span className="font-bold text-foreground tracking-tight">Ital Panini</span>
+    <aside className="fixed inset-y-0 left-0 z-50 w-60 bg-card border-r border-border hidden lg:flex lg:flex-col">
+      <div className="flex h-14 items-center gap-2.5 px-5 border-b border-border">
+        <img src={logo} alt="Ital Panini" className="h-8 w-8 rounded-lg object-contain" />
+        <span className="font-bold text-[15px] tracking-tight">Ital Panini</span>
       </div>
       
-      <nav className="flex flex-col gap-1 p-4 flex-1">
+      <nav className="flex flex-col gap-0.5 p-3 flex-1">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href;
           const Icon = item.icon;
@@ -34,17 +34,17 @@ export function Sidebar() {
               key={item.name}
               to={item.href}
               className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
+                'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors',
                 isActive
-                  ? 'gradient-primary text-primary-foreground shadow-card'
+                  ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-[18px] w-[18px]" />
               <span className="flex-1">{item.name}</span>
               {showBadge && (
                 <span className={cn(
-                  "flex h-5 min-w-5 items-center justify-center rounded-full text-xs font-bold px-1.5",
+                  "flex h-5 min-w-5 items-center justify-center rounded-full text-[11px] font-bold px-1",
                   isActive
                     ? "bg-primary-foreground/20 text-primary-foreground"
                     : "bg-accent text-accent-foreground"
