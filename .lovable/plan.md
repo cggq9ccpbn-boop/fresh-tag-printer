@@ -1,33 +1,58 @@
 
 
-## Plan: Utiliser le plugin Capacitor standard pour TCP
+## Diagnostic: GitHub Actions "The operation was canceled"
 
-### Probleme identifie
+Le `.gitignore` est deja correct avec toutes les exclusions necessaires. Le probleme n'est pas la.
 
-Le plugin custom `TcpPrinter` (fichiers Swift copiés manuellement dans Xcode) n'est jamais correctement reconnu par Capacitor, d'où l'erreur `UNIMPLEMENTED` permanente. Le fallback `capacitor-tcp-connect` est compatible Capacitor 5 uniquement, pas Capacitor 8.
+### Cause probable
 
-Le package `@deedarb/capacitor-tcp-socket` est **deja installe** (v7.2.1), compatible Capacitor 7+/8, et fournit un vrai plugin iOS natif sans configuration manuelle dans Xcode. Il suffit de `npx cap sync` pour qu'il fonctionne.
+L'erreur "The operation was canceled" qui survient sur **plusieurs etapes** (checkout ET setup-node) indique generalement :
 
-### Changements
+1. **Minutes GitHub Actions epuisees** -- Les comptes gratuits ont 2000 minutes/mois. Si elles sont epuisees, les jobs sont annules automatiquement.
+2. **Timeout du workflow** -- Le job depasse le temps maximum autorise.
 
-**1. Réécrire `src/lib/electron.ts`** pour utiliser `TcpSocket` de `@deedarb/capacitor-tcp-socket` :
-- Import `TcpSocket` au lieu du plugin custom `TcpPrinter`
-- API: `connect({ipAddress, port})` → retourne `{client}` → `send({client, data})` → `disconnect({client})`
-- Les données ZPL doivent être encodées en base64 (le plugin iOS décode en base64)
-- Supprimer le code `registerPlugin('TcpPrinter')` et le fallback `SocketConnect`
+### Verification immediate (a faire sur GitHub)
 
-**2. Simplifier `setup-ios.sh`** : retirer la copie des fichiers plugin custom (`TcpPrinterPlugin.swift/.m`) puisqu'ils ne sont plus nécessaires.
+1. Va dans **Settings > Billing and plans > Plans and usage** sur GitHub
+2. Verifie la section **Actions** -- si les minutes sont a 0, c'est la cause
 
-**3. Mettre à jour le diagnostic** dans `PrinterScanner.tsx` pour refléter le nouveau plugin (`TcpSocket`).
+### Correction du workflow
 
-### Apres implementation
+Ajouter un `timeout-minutes` au job pour eviter les blocages, et retirer le `cache: 'npm'` du setup-node qui peut causer des timeouts sur Windows :
 
-Tu devras :
-1. `git pull` le projet
-2. `npm install --legacy-peer-deps`
-3. `npm run build`
-4. `npx cap sync ios`
-5. Ouvrir Xcode et lancer sur l'iPad
+```yaml
+jobs:
+  build:
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win
+          - os: macos-latest
+            platform: mac
+          - os: ubuntu-latest
+            platform: linux
 
-Plus besoin d'ajouter manuellement des fichiers Swift dans Xcode.
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+```
+
+Changements :
+- Ajout de `timeout-minutes: 30` au job build
+- Retrait de `cache: 'npm'` qui peut bloquer sur certains runners Windows
+
+### Fichier modifie
+
+| Fichier | Modification |
+|---|---|
+| `.github/workflows/electron-build.yml` | Ajout timeout + retrait cache npm |
 
