@@ -7,7 +7,14 @@ interface TcpPrinterPlugin {
   testConnection(options: { ip: string; port: number }): Promise<{ connected: boolean }>;
 }
 
-const TcpPrinter = registerPlugin<TcpPrinterPlugin>('TcpPrinter');
+// Lazy plugin registration — only resolved when first accessed
+let _tcpPrinter: TcpPrinterPlugin | null = null;
+const getTcpPrinter = (): TcpPrinterPlugin => {
+  if (!_tcpPrinter) {
+    _tcpPrinter = registerPlugin<TcpPrinterPlugin>('TcpPrinter');
+  }
+  return _tcpPrinter;
+};
 
 interface PrinterInfo {
   ip: string;
@@ -67,8 +74,6 @@ export const scanForPrinters = async (
 
 /**
  * Print raw ZPL data directly to a thermal printer via TCP.
- * On Capacitor (iOS/Android): sends raw ZPL string to native plugin.
- * On Electron: sends base64-encoded data via IPC.
  */
 export const printViaTcp = async (
   ip: string,
@@ -88,7 +93,7 @@ export const printViaTcp = async (
   if (isCapacitor()) {
     try {
       console.log('[TcpPrinter] Sending ZPL to', ip, ':', port, '- length:', zplData.length);
-      await TcpPrinter.print({ ip, port, data: zplData });
+      await getTcpPrinter().print({ ip, port, data: zplData });
       return { success: true };
     } catch (error) {
       console.error('[TcpPrinter] Print error:', error);
@@ -118,7 +123,7 @@ export const testPrinterConnection = async (
   if (isCapacitor()) {
     try {
       console.log('[TcpPrinter] Testing connection to', ip, ':', port);
-      await TcpPrinter.testConnection({ ip, port });
+      await getTcpPrinter().testConnection({ ip, port });
       return { success: true };
     } catch (error) {
       console.error('[TcpPrinter] Test error:', error);
@@ -127,4 +132,20 @@ export const testPrinterConnection = async (
   }
 
   return { success: false, error: "Test de connexion disponible uniquement dans l'app native" };
+};
+
+/**
+ * Check if the TcpPrinter plugin is available (diagnostic)
+ */
+export const diagnoseTcpPlugin = async (): Promise<{ platform: string; pluginAvailable: boolean; error?: string }> => {
+  const platform = getPlatform();
+  if (!isCapacitor()) {
+    return { platform, pluginAvailable: false, error: 'Not running on Capacitor' };
+  }
+  try {
+    const plugin = getTcpPrinter();
+    return { platform, pluginAvailable: !!plugin };
+  } catch (error) {
+    return { platform, pluginAvailable: false, error: String(error) };
+  }
 };

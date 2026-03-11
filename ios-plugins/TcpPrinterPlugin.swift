@@ -13,6 +13,17 @@ public class TcpPrinterPlugin: CAPPlugin {
             return
         }
 
+        var hasResponded = false
+        let respondLock = NSLock()
+
+        func respond(_ block: () -> Void) {
+            respondLock.lock()
+            defer { respondLock.unlock() }
+            guard !hasResponded else { return }
+            hasResponded = true
+            block()
+        }
+
         let host = NWEndpoint.Host(ip)
         let nwPort = NWEndpoint.Port(integerLiteral: UInt16(port))
         let connection = NWConnection(host: host, port: nwPort, using: .tcp)
@@ -23,17 +34,17 @@ public class TcpPrinterPlugin: CAPPlugin {
                 let sendData = data.data(using: .utf8)!
                 connection.send(content: sendData, completion: .contentProcessed { error in
                     if let error = error {
-                        call.reject("Send error: \(error.localizedDescription)")
+                        respond { call.reject("Send error: \(error.localizedDescription)") }
                     } else {
-                        call.resolve(["success": true])
+                        respond { call.resolve(["success": true]) }
                     }
                     connection.cancel()
                 })
             case .failed(let error):
-                call.reject("Connection failed: \(error.localizedDescription)")
+                respond { call.reject("Connection failed: \(error.localizedDescription)") }
                 connection.cancel()
             case .waiting(let error):
-                call.reject("Connection waiting: \(error.localizedDescription)")
+                respond { call.reject("Connection waiting: \(error.localizedDescription)") }
                 connection.cancel()
             default:
                 break
@@ -43,10 +54,8 @@ public class TcpPrinterPlugin: CAPPlugin {
         connection.start(queue: .global(qos: .userInitiated))
 
         DispatchQueue.global().asyncAfter(deadline: .now() + 10) {
-            if connection.state != .cancelled {
-                connection.cancel()
-                call.reject("Connection timeout")
-            }
+            respond { call.reject("Connection timeout") }
+            connection.cancel()
         }
     }
 
@@ -57,6 +66,17 @@ public class TcpPrinterPlugin: CAPPlugin {
             return
         }
 
+        var hasResponded = false
+        let respondLock = NSLock()
+
+        func respond(_ block: () -> Void) {
+            respondLock.lock()
+            defer { respondLock.unlock() }
+            guard !hasResponded else { return }
+            hasResponded = true
+            block()
+        }
+
         let host = NWEndpoint.Host(ip)
         let nwPort = NWEndpoint.Port(integerLiteral: UInt16(port))
         let connection = NWConnection(host: host, port: nwPort, using: .tcp)
@@ -64,13 +84,13 @@ public class TcpPrinterPlugin: CAPPlugin {
         connection.stateUpdateHandler = { state in
             switch state {
             case .ready:
-                call.resolve(["connected": true])
+                respond { call.resolve(["connected": true]) }
                 connection.cancel()
             case .failed(let error):
-                call.reject("Connection failed: \(error.localizedDescription)")
+                respond { call.reject("Connection failed: \(error.localizedDescription)") }
                 connection.cancel()
             case .waiting(let error):
-                call.reject("Connection waiting: \(error.localizedDescription)")
+                respond { call.reject("Connection waiting: \(error.localizedDescription)") }
                 connection.cancel()
             default:
                 break
@@ -80,10 +100,8 @@ public class TcpPrinterPlugin: CAPPlugin {
         connection.start(queue: .global(qos: .userInitiated))
 
         DispatchQueue.global().asyncAfter(deadline: .now() + 5) {
-            if connection.state != .cancelled {
-                connection.cancel()
-                call.reject("Connection timeout")
-            }
+            respond { call.reject("Connection timeout") }
+            connection.cancel()
         }
     }
 }
