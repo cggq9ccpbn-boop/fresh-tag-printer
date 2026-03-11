@@ -5,7 +5,6 @@ import { Product, ALLERGENS, CategoryId } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Edit2, Trash2, Package, Settings2 } from 'lucide-react';
 import { ProductDialog } from '@/components/products/ProductDialog';
 import { CategoryDialog } from '@/components/products/CategoryDialog';
@@ -42,15 +41,8 @@ export default function ProductsPage() {
   const getCategoryLabel = (categoryId: CategoryId) => getCategory(categoryId)?.label || categoryId;
   const getCategoryIcon = (categoryId: CategoryId) => getCategory(categoryId)?.icon || '📦';
 
-  const handleEdit = (product: Product) => {
-    setEditingProduct(product);
-    setDialogOpen(true);
-  };
-
-  const handleDelete = (product: Product) => {
-    setProductToDelete(product);
-    setDeleteDialogOpen(true);
-  };
+  const handleEdit = (product: Product) => { setEditingProduct(product); setDialogOpen(true); };
+  const handleDelete = (product: Product) => { setProductToDelete(product); setDeleteDialogOpen(true); };
 
   const confirmDelete = () => {
     if (productToDelete) {
@@ -61,19 +53,16 @@ export default function ProductsPage() {
     setDeleteDialogOpen(false);
   };
 
-  const handleDialogClose = () => {
-    setDialogOpen(false);
-    setEditingProduct(null);
-  };
+  const handleDialogClose = () => { setDialogOpen(false); setEditingProduct(null); };
 
   return (
-    <div className="space-y-4 pt-2">
+    <div className="space-y-4 pt-2 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground font-medium">
           {products.length} produit{products.length > 1 ? 's' : ''}
         </p>
-        <Button size="sm" onClick={() => setDialogOpen(true)} className="h-8">
+        <Button size="sm" onClick={() => setDialogOpen(true)} className="h-9 rounded-xl gradient-primary border-0 shadow-card hover:shadow-elevated transition-all">
           <Plus className="mr-1.5 h-3.5 w-3.5" />
           Ajouter
         </Button>
@@ -81,23 +70,23 @@ export default function ProductsPage() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Rechercher..."
+          placeholder="Rechercher un produit..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9 h-10 bg-card border-border/50"
+          className="pl-10 h-11 bg-card border-border/60 rounded-xl shadow-soft focus:shadow-card transition-shadow"
         />
       </div>
 
-      {/* Category filters - horizontal scroll */}
+      {/* Category filters */}
       <ScrollArea className="w-full whitespace-nowrap">
         <div className="flex gap-2 pb-1">
           <Button
             variant={selectedCategory === 'all' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setSelectedCategory('all')}
-            className="h-8 text-xs rounded-full flex-shrink-0"
+            className={`h-8 text-xs rounded-full flex-shrink-0 ${selectedCategory === 'all' ? 'gradient-primary border-0 shadow-soft' : ''}`}
           >
             Tous
           </Button>
@@ -107,7 +96,7 @@ export default function ProductsPage() {
               variant={selectedCategory === category.id ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSelectedCategory(category.id)}
-              className="h-8 text-xs rounded-full flex-shrink-0"
+              className={`h-8 text-xs rounded-full flex-shrink-0 ${selectedCategory === category.id ? 'gradient-primary border-0 shadow-soft' : ''}`}
             >
               {category.icon} {category.label}
             </Button>
@@ -126,80 +115,76 @@ export default function ProductsPage() {
 
       {/* Product list */}
       {filteredProducts.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <div className="h-14 w-14 rounded-2xl bg-muted flex items-center justify-center mb-3">
-              <Package className="h-7 w-7 text-muted-foreground" />
-            </div>
-            <p className="text-sm font-medium">Aucun produit</p>
-            <p className="text-xs text-muted-foreground mt-1 text-center">
-              {searchQuery || selectedCategory !== 'all'
-                ? 'Aucun résultat'
-                : 'Ajoutez votre premier produit'}
-            </p>
-            {!searchQuery && selectedCategory === 'all' && (
-              <Button size="sm" className="mt-3" onClick={() => setDialogOpen(true)}>
-                <Plus className="mr-1.5 h-3.5 w-3.5" />
-                Ajouter
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        <div className="flex flex-col items-center justify-center py-16 px-4">
+          <div className="h-16 w-16 rounded-2xl bg-muted/80 flex items-center justify-center mb-4">
+            <Package className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <p className="text-sm font-semibold">Aucun produit</p>
+          <p className="text-xs text-muted-foreground mt-1 text-center">
+            {searchQuery || selectedCategory !== 'all' ? 'Aucun résultat' : 'Ajoutez votre premier produit'}
+          </p>
+          {!searchQuery && selectedCategory === 'all' && (
+            <Button size="sm" className="mt-4 gradient-primary border-0 rounded-xl" onClick={() => setDialogOpen(true)}>
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              Ajouter
+            </Button>
+          )}
+        </div>
       ) : (
         <div className="space-y-2">
-          {filteredProducts.map((product) => (
-            <Card key={product.id} className="overflow-hidden active:scale-[0.98] transition-transform">
-              <CardContent className="flex items-center gap-3 py-3 px-4">
-                {/* Icon/Photo */}
-                {product.photo ? (
-                  <img
-                    src={product.photo}
-                    alt={product.name}
-                    className="h-11 w-11 object-cover rounded-xl flex-shrink-0"
-                  />
-                ) : (
-                  <div className="h-11 w-11 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg">{getCategoryIcon(product.category)}</span>
+          {filteredProducts.map((product, i) => (
+            <div
+              key={product.id}
+              className="group flex items-center gap-3 p-3 px-4 rounded-2xl bg-card border border-border/60 shadow-soft transition-all hover:shadow-card active:scale-[0.98]"
+              style={{ animationDelay: `${i * 30}ms` }}
+            >
+              {/* Icon/Photo */}
+              {product.photo ? (
+                <img
+                  src={product.photo}
+                  alt={product.name}
+                  className="h-12 w-12 object-cover rounded-xl flex-shrink-0 shadow-soft"
+                />
+              ) : (
+                <div className="h-12 w-12 rounded-xl bg-muted/80 flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl">{getCategoryIcon(product.category)}</span>
+                </div>
+              )}
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-sm truncate">{product.name}</h3>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {getCategoryLabel(product.category)}
+                  {' · '}
+                  {product.shelfLifeDays > 0 ? `${product.shelfLifeDays}j` : ''}
+                  {product.shelfLifeHours > 0 ? `${product.shelfLifeHours}h` : ''}
+                  {' · '}
+                  {product.dlcType === 'dlc' ? 'DLC' : 'DDM'}
+                </p>
+                {product.allergens.length > 0 && (
+                  <div className="flex gap-1 mt-1">
+                    {product.allergens.slice(0, 4).map((id) => {
+                      const a = ALLERGENS.find((x) => x.id === id);
+                      return a ? <span key={id} className="text-[11px]">{a.icon}</span> : null;
+                    })}
+                    {product.allergens.length > 4 && (
+                      <span className="text-[10px] text-muted-foreground">+{product.allergens.length - 4}</span>
+                    )}
                   </div>
                 )}
+              </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm truncate">{product.name}</h3>
-                  <p className="text-[11px] text-muted-foreground">
-                    {getCategoryLabel(product.category)}
-                    {' · '}
-                    {product.shelfLifeDays > 0 ? `${product.shelfLifeDays}j` : ''}
-                    {product.shelfLifeHours > 0 ? `${product.shelfLifeHours}h` : ''}
-                    {' · '}
-                    {product.dlcType === 'dlc' ? 'DLC' : 'DDM'}
-                  </p>
-                  {product.allergens.length > 0 && (
-                    <div className="flex gap-1 mt-1">
-                      {product.allergens.slice(0, 3).map((id) => {
-                        const a = ALLERGENS.find((x) => x.id === id);
-                        return a ? (
-                          <span key={id} className="text-[10px]">{a.icon}</span>
-                        ) : null;
-                      })}
-                      {product.allergens.length > 3 && (
-                        <span className="text-[10px] text-muted-foreground">+{product.allergens.length - 3}</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions - always visible */}
-                <div className="flex gap-1 flex-shrink-0">
-                  <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleEdit(product)}>
-                    <Edit2 className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => handleDelete(product)}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              {/* Actions */}
+              <div className="flex gap-0.5 flex-shrink-0">
+                <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg" onClick={() => handleEdit(product)}>
+                  <Edit2 className="h-3.5 w-3.5" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10" onClick={() => handleDelete(product)}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -208,7 +193,7 @@ export default function ProductsPage() {
       <CategoryDialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen} />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer ce produit ?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -216,8 +201,8 @@ export default function ProductsPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogCancel className="rounded-xl">Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl">
               Supprimer
             </AlertDialogAction>
           </AlertDialogFooter>

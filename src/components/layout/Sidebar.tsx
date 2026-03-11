@@ -17,13 +17,13 @@ export function Sidebar() {
   const queueCount = getQueueCount();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border hidden lg:block">
-      <div className="flex h-16 items-center gap-3 px-6 border-b border-border">
-        <img src={logo} alt="Ital Panini" className="h-9 w-9 rounded-lg object-contain" />
-        <span className="font-semibold text-foreground">Ital Panini</span>
+    <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border/60 hidden lg:flex lg:flex-col shadow-soft">
+      <div className="flex h-16 items-center gap-3 px-6 border-b border-border/60">
+        <img src={logo} alt="Ital Panini" className="h-9 w-9 rounded-xl object-contain" />
+        <span className="font-bold text-foreground tracking-tight">Ital Panini</span>
       </div>
       
-      <nav className="flex flex-col gap-1 p-4">
+      <nav className="flex flex-col gap-1 p-4 flex-1">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href;
           const Icon = item.icon;
@@ -36,14 +36,19 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
                 isActive
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  ? 'gradient-primary text-primary-foreground shadow-card'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
               <Icon className="h-5 w-5" />
               <span className="flex-1">{item.name}</span>
               {showBadge && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-xs font-bold px-1.5">
+                <span className={cn(
+                  "flex h-5 min-w-5 items-center justify-center rounded-full text-xs font-bold px-1.5",
+                  isActive
+                    ? "bg-primary-foreground/20 text-primary-foreground"
+                    : "bg-accent text-accent-foreground"
+                )}>
                   {queueCount}
                 </span>
               )}
