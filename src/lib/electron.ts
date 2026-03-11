@@ -119,8 +119,7 @@ export const testPrinterConnection = async (
 
   if (isCapacitor()) {
     try {
-      const { Plugins } = await import('@capacitor/core');
-      const TcpPrinter = (Plugins as any).TcpPrinter;
+      const TcpPrinter = (Capacitor as any).Plugins?.TcpPrinter;
       
       if (!TcpPrinter) {
         return { success: false, error: 'Plugin TcpPrinter non disponible' };
