@@ -88,16 +88,7 @@ export const printViaTcp = async (
 
   if (isCapacitor()) {
     try {
-      // Decode base64 data back to ZPL text
       const zplText = decodeURIComponent(escape(atob(data)));
-      
-      // Use custom native TcpPrinter plugin (Swift NWConnection on iOS)
-      const TcpPrinter = (Capacitor as any).Plugins?.TcpPrinter;
-      
-      if (!TcpPrinter) {
-        return { success: false, error: 'Plugin TcpPrinter non disponible. Reconstruisez l\'app avec setup-ios.sh.' };
-      }
-
       await TcpPrinter.print({ ip, port, data: zplText });
       return { success: true };
     } catch (error) {
