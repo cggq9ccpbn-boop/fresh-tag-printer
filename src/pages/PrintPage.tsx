@@ -25,7 +25,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
 import { canPrintNatively, printViaTcp } from '@/lib/electron';
-import { generateZpl, zplToBase64 } from '@/lib/zpl';
+import { generateZpl } from '@/lib/zpl';
 
 export default function PrintPage() {
   const { products, getProduct } = useProducts();
