@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { isElectron, scanForPrinters, testPrinterConnection, diagnoseTcpPlugin, getPlatform } from '@/lib/electron';
-import { Loader2, Search, Wifi, WifiOff, CheckCircle2, Plug, Activity } from 'lucide-react';
+import { isElectron, isCapacitor, scanForPrinters, testPrinterConnection, diagnoseTcpPlugin, getPlatform } from '@/lib/electron';
+import { Loader2, Search, Wifi, WifiOff, CheckCircle2, Plug, Activity, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PrinterScannerProps {
@@ -22,6 +22,13 @@ export function PrinterScanner({ printerIp, printerPort, onSelect }: PrinterScan
   const [manualIp, setManualIp] = useState(printerIp);
   const [manualPort, setManualPort] = useState(String(printerPort));
   const [selectedIp, setSelectedIp] = useState(printerIp);
+  const [diagnosticResult, setDiagnosticResult] = useState<{
+    platform: string;
+    pluginAvailable: boolean;
+    pluginRegistered: boolean;
+    error?: string;
+    instructions?: string;
+  } | null>(null);
 
   const handleScan = async () => {
     setScanning(true);
@@ -65,6 +72,8 @@ export function PrinterScanner({ printerIp, printerPort, onSelect }: PrinterScan
       const result = await testPrinterConnection(manualIp, port);
       if (result.success) {
         toast.success('Connexion réussie !');
+      } else if (result.errorKind === 'plugin_missing') {
+        toast.error('Plugin natif manquant — voir Diagnostic', { duration: 6000 });
       } else {
         toast.error(result.error || 'Connexion échouée');
       }
@@ -77,13 +86,14 @@ export function PrinterScanner({ printerIp, printerPort, onSelect }: PrinterScan
 
   const handleDiagnose = async () => {
     setDiagnosing(true);
+    setDiagnosticResult(null);
     try {
       const result = await diagnoseTcpPlugin();
-      const platform = getPlatform();
+      setDiagnosticResult(result);
       if (result.pluginAvailable) {
-        toast.success(`Plateforme : ${platform} — Plugin TcpSocket : ✅ détecté`);
+        toast.success(`✅ Plateforme : ${result.platform} — Plugin TcpSocket fonctionnel`);
       } else {
-        toast.error(`Plateforme : ${platform} — Plugin TcpSocket : ❌ non détecté${result.error ? ` (${result.error})` : ''}`);
+        toast.error(`❌ Plugin non fonctionnel — voir les détails ci-dessous`, { duration: 6000 });
       }
     } catch {
       toast.error('Erreur lors du diagnostic');
@@ -93,26 +103,28 @@ export function PrinterScanner({ printerIp, printerPort, onSelect }: PrinterScan
   };
 
   const electron = isElectron();
+  const capacitor = isCapacitor();
+  const platform = getPlatform();
 
   return (
     <div className="space-y-5">
+      {/* Platform status */}
+      <div className="flex items-center gap-2 px-1">
+        <Badge variant={capacitor || electron ? 'default' : 'secondary'} className="text-[10px]">
+          {platform === 'ios' ? '📱 iOS' : platform === 'android' ? '📱 Android' : platform === 'electron' ? '🖥️ Desktop' : '🌐 Web'}
+        </Badge>
+        {!capacitor && !electron && (
+          <span className="text-[11px] text-muted-foreground">Impression TCP non disponible en mode web</span>
+        )}
+      </div>
+
       {/* Scanner réseau (Electron uniquement) */}
       {electron && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Recherche automatique</Label>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleScan}
-              disabled={scanning}
-              className="gap-2"
-            >
-              {scanning ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Search className="h-4 w-4" />
-              )}
+            <Button variant="outline" size="sm" onClick={handleScan} disabled={scanning} className="gap-2">
+              {scanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
               {scanning ? 'Scan en cours...' : 'Scanner le réseau'}
             </Button>
           </div>
@@ -211,11 +223,7 @@ export function PrinterScanner({ printerIp, printerPort, onSelect }: PrinterScan
             disabled={testing || !manualIp}
             className="gap-2"
           >
-            {testing ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Wifi className="h-4 w-4" />
-            )}
+            {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wifi className="h-4 w-4" />}
             Tester la connexion
           </Button>
           <Button
@@ -225,15 +233,44 @@ export function PrinterScanner({ printerIp, printerPort, onSelect }: PrinterScan
             disabled={diagnosing}
             className="gap-2"
           >
-            {diagnosing ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Activity className="h-4 w-4" />
-            )}
+            {diagnosing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Activity className="h-4 w-4" />}
             Diagnostic
           </Button>
         </div>
       </div>
+
+      {/* Diagnostic result panel */}
+      {diagnosticResult && (
+        <div className={`rounded-xl border p-4 space-y-2 ${
+          diagnosticResult.pluginAvailable
+            ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/50'
+            : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800/50'
+        }`}>
+          <div className="flex items-center gap-2">
+            {diagnosticResult.pluginAvailable ? (
+              <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+            ) : (
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+            )}
+            <p className="text-sm font-semibold">
+              {diagnosticResult.pluginAvailable ? 'Plugin TcpSocket fonctionnel ✅' : 'Plugin TcpSocket non fonctionnel ❌'}
+            </p>
+          </div>
+          <div className="text-xs space-y-1 text-muted-foreground">
+            <p>Plateforme : <span className="font-mono font-medium">{diagnosticResult.platform}</span></p>
+            <p>Plugin enregistré (JS) : {diagnosticResult.pluginRegistered ? '✅' : '❌'}</p>
+            <p>Plugin fonctionnel (natif) : {diagnosticResult.pluginAvailable ? '✅' : '❌'}</p>
+          </div>
+          {diagnosticResult.error && (
+            <p className="text-xs text-red-700 dark:text-red-400 font-medium">{diagnosticResult.error}</p>
+          )}
+          {diagnosticResult.instructions && (
+            <pre className="text-[11px] bg-background/80 rounded-lg p-3 whitespace-pre-wrap font-mono leading-relaxed">
+              {diagnosticResult.instructions}
+            </pre>
+          )}
+        </div>
+      )}
     </div>
   );
 }

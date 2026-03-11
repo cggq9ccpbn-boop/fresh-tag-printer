@@ -28,7 +28,85 @@ Dans Xcode :
 
 ---
 
-## Installation manuelle
+## Impression TCP (plugin natif)
+
+L'application utilise le plugin **`@deedarb/capacitor-tcp-socket`** pour imprimer directement sur les imprimantes thermiques réseau via TCP.
+
+> ⚠️ Ce plugin nécessite un build natif (Capacitor). L'impression ne fonctionne **pas** en mode web/navigateur.
+
+### Configuration de l'imprimante
+
+1. Aller dans **Paramètres** dans l'application
+2. Configurer l'adresse IP de l'imprimante (ex: `192.168.1.100`)
+3. Configurer le port (par défaut : `9100`)
+4. Utiliser le bouton **Diagnostic** pour vérifier que le plugin est bien chargé
+
+---
+
+## ✅ Checklist après chaque `git pull`
+
+**Exécutez ces commandes dans l'ordre à chaque mise à jour :**
+
+```bash
+# 1. Installer les dépendances (avec flag legacy pour compatibilité)
+npm install --legacy-peer-deps
+
+# 2. Builder l'application web
+npm run build
+
+# 3. Synchroniser avec le projet iOS natif
+npx cap sync ios
+
+# 4. Ouvrir dans Xcode
+npx cap open ios
+```
+
+**Dans Xcode :**
+1. **Product → Clean Build Folder** (⇧⌘K)
+2. Sélectionnez votre appareil iOS
+3. Cliquez **▶️ Run**
+
+### Vérification du plugin
+
+Après le sync, vérifiez dans Xcode que le plugin natif est présent :
+- Ouvrez `ios/App/Podfile` → le pod `DeedarbCapacitorTcpSocket` doit apparaître
+- Ou dans le navigateur de projet Xcode : `Pods` → le dossier du plugin doit être listé
+
+---
+
+## 🔧 Dépannage : erreur `UNIMPLEMENTED`
+
+Si le diagnostic affiche `UNIMPLEMENTED` ou que l'impression échoue avec ce code :
+
+**Le plugin natif n'est pas chargé dans le build iOS.** C'est un problème de synchronisation, pas de code.
+
+### Solution complète :
+
+```bash
+# Supprimer le dossier iOS et repartir proprement
+rm -rf ios/
+
+# Réinstaller
+npm install --legacy-peer-deps
+npm run build
+
+# Recréer le projet iOS
+npx cap add ios
+npx cap sync ios
+
+# Ouvrir Xcode
+npx cap open ios
+```
+
+Dans Xcode :
+1. **Product → Clean Build Folder** (⇧⌘K)
+2. Sélectionnez votre Team (Signing & Capabilities)
+3. Branchez l'iPad/iPhone
+4. **▶️ Run**
+
+---
+
+## Installation manuelle (sans le script)
 
 ### Prérequis
 
@@ -45,7 +123,7 @@ Dans Xcode :
 
 2. **Installer les dépendances**
    ```bash
-   npm install
+   npm install --legacy-peer-deps
    ```
 
 3. **Ajouter les plateformes natives**
@@ -69,26 +147,6 @@ Dans Xcode :
    npx cap open ios
    ```
 
-## Impression TCP
-
-L'application utilise le plugin `capacitor-tcp-connect` pour imprimer directement sur les imprimantes thermiques réseau.
-
-### Configuration de l'imprimante
-
-1. Aller dans **Paramètres** dans l'application
-2. Configurer l'adresse IP de l'imprimante (ex: `192.168.1.100`)
-3. Configurer le port (par défaut : `9100`)
-
-## Synchronisation après modifications
-
-Après chaque `git pull`, exécuter :
-
-```bash
-npm install
-npm run build
-npx cap sync
-```
-
 ## Déploiement
 
 ### TestFlight (iOS)
@@ -107,4 +165,5 @@ npx cap sync
 ## Ressources
 
 - [Documentation Capacitor](https://capacitorjs.com/docs)
+- [Plugin TcpSocket](https://github.com/gee1k/capacitor-tcp-socket)
 - [Guide Lovable Mobile](https://lovable.dev/blog/2025/03/10/how-to-convert-a-web-app-to-a-mobile-app/)

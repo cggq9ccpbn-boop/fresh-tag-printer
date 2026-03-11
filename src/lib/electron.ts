@@ -46,6 +46,49 @@ export const getPlatform = (): 'electron' | 'ios' | 'android' | 'web' => {
   return 'web';
 };
 
+/**
+ * Classify a raw error into a user-friendly category.
+ */
+export type PrintErrorKind = 'plugin_missing' | 'network' | 'send' | 'unknown';
+
+export const classifyError = (error: unknown): { kind: PrintErrorKind; message: string } => {
+  const raw = String(error);
+
+  if (raw.includes('UNIMPLEMENTED') || raw.includes('not implemented')) {
+    return {
+      kind: 'plugin_missing',
+      message:
+        'Le plugin natif TcpSocket n\'est pas chargé. Resynchronisez le projet iOS :\n' +
+        '1. npm install --legacy-peer-deps\n' +
+        '2. npm run build\n' +
+        '3. npx cap sync ios\n' +
+        '4. Dans Xcode : Product → Clean Build Folder puis ▶️ Run',
+    };
+  }
+
+  if (
+    raw.includes('ECONNREFUSED') ||
+    raw.includes('ETIMEDOUT') ||
+    raw.includes('ENETUNREACH') ||
+    raw.includes('timeout') ||
+    raw.includes('Connection refused')
+  ) {
+    return {
+      kind: 'network',
+      message: 'Impossible de joindre l\'imprimante. Vérifiez l\'adresse IP, le port et que l\'imprimante est allumée sur le même réseau.',
+    };
+  }
+
+  if (raw.includes('send') || raw.includes('write')) {
+    return {
+      kind: 'send',
+      message: 'Connexion établie mais l\'envoi des données a échoué. Réessayez ou redémarrez l\'imprimante.',
+    };
+  }
+
+  return { kind: 'unknown', message: raw };
+};
+
 export const scanForPrinters = async (
   port: number = 9100
 ): Promise<{ printers: PrinterInfo[]; subnet: string }> => {
@@ -61,7 +104,6 @@ export const scanForPrinters = async (
 
 /**
  * Send raw data via TcpSocket plugin (Capacitor).
- * Data is sent as plain text string.
  */
 const sendViaTcpSocket = async (ip: string, port: number, data: string): Promise<void> => {
   const { client } = await TcpSocket.connect({ ipAddress: ip, port, timeout: 5 });
@@ -81,14 +123,15 @@ export const printViaTcp = async (
   ip: string,
   port: number,
   zplData: string
-): Promise<{ success: boolean; error?: string }> => {
+): Promise<{ success: boolean; error?: string; errorKind?: PrintErrorKind }> => {
   if (isElectron()) {
     try {
       const base64 = btoa(unescape(encodeURIComponent(zplData)));
       const result = await window.electronAPI!.printTcp({ ip, port, data: base64 });
       return { success: result.success };
     } catch (error) {
-      return { success: false, error: String(error) };
+      const classified = classifyError(error);
+      return { success: false, error: classified.message, errorKind: classified.kind };
     }
   }
 
@@ -99,11 +142,12 @@ export const printViaTcp = async (
       return { success: true };
     } catch (error) {
       console.error('[TcpSocket] Print error:', error);
-      return { success: false, error: String(error) };
+      const classified = classifyError(error);
+      return { success: false, error: classified.message, errorKind: classified.kind };
     }
   }
 
-  return { success: false, error: "L'impression TCP nécessite l'application native (iPad/desktop)" };
+  return { success: false, error: "L'impression TCP nécessite l'application native (iPad/desktop)", errorKind: 'unknown' };
 };
 
 /**
@@ -112,13 +156,14 @@ export const printViaTcp = async (
 export const testPrinterConnection = async (
   ip: string,
   port: number
-): Promise<{ success: boolean; error?: string }> => {
+): Promise<{ success: boolean; error?: string; errorKind?: PrintErrorKind }> => {
   if (isElectron()) {
     try {
       const result = await window.electronAPI!.testPrinterConnection({ ip, port });
       return { success: result.connected };
     } catch (error) {
-      return { success: false, error: String(error) };
+      const classified = classifyError(error);
+      return { success: false, error: classified.message, errorKind: classified.kind };
     }
   }
 
@@ -129,30 +174,74 @@ export const testPrinterConnection = async (
       return { success: true };
     } catch (error) {
       console.error('[TcpSocket] Test error:', error);
-      return { success: false, error: String(error) };
+      const classified = classifyError(error);
+      return { success: false, error: classified.message, errorKind: classified.kind };
     }
   }
 
-  return { success: false, error: "Test de connexion disponible uniquement dans l'app native" };
+  return { success: false, error: "Test de connexion disponible uniquement dans l'app native", errorKind: 'unknown' };
 };
 
 /**
  * Check if TcpSocket plugin is available (diagnostic)
  */
-export const diagnoseTcpPlugin = async (): Promise<{ platform: string; pluginAvailable: boolean; error?: string }> => {
+export const diagnoseTcpPlugin = async (): Promise<{
+  platform: string;
+  pluginAvailable: boolean;
+  pluginRegistered: boolean;
+  error?: string;
+  instructions?: string;
+}> => {
   const platform = getPlatform();
+
   if (!isCapacitor()) {
-    return { platform, pluginAvailable: false, error: 'Not running on Capacitor' };
+    return { platform, pluginAvailable: false, pluginRegistered: false, error: 'Pas en mode Capacitor (web ou desktop)' };
   }
 
-  const available = Capacitor.isPluginAvailable('TcpSocket');
-  if (available) {
-    return { platform, pluginAvailable: true };
+  const registered = Capacitor.isPluginAvailable('TcpSocket');
+
+  if (!registered) {
+    return {
+      platform,
+      pluginAvailable: false,
+      pluginRegistered: false,
+      error: 'Plugin TcpSocket non enregistré dans le projet natif',
+      instructions:
+        'Resynchronisez le projet :\n' +
+        '1. npm install --legacy-peer-deps\n' +
+        '2. npm run build\n' +
+        '3. npx cap sync ios\n' +
+        '4. Dans Xcode : Product → Clean Build Folder\n' +
+        '5. Relancez l\'app sur l\'iPad',
+    };
   }
 
-  return {
-    platform,
-    pluginAvailable: false,
-    error: 'Plugin TcpSocket non détecté',
-  };
+  // Plugin is registered, try a quick connect to verify it's truly functional
+  try {
+    await TcpSocket.connect({ ipAddress: '0.0.0.0', port: 1, timeout: 1 });
+    // If this succeeds (unlikely), plugin works
+    return { platform, pluginAvailable: true, pluginRegistered: true };
+  } catch (error) {
+    const raw = String(error);
+    if (raw.includes('UNIMPLEMENTED') || raw.includes('not implemented')) {
+      return {
+        platform,
+        pluginAvailable: false,
+        pluginRegistered: true,
+        error: 'Plugin enregistré côté JS mais absent côté natif iOS',
+        instructions:
+          'Le plugin JS est présent mais le code natif manque.\n' +
+          'Supprimez le dossier ios/ et resynchronisez :\n' +
+          '1. rm -rf ios/\n' +
+          '2. npm install --legacy-peer-deps\n' +
+          '3. npm run build\n' +
+          '4. npx cap add ios\n' +
+          '5. npx cap sync ios\n' +
+          '6. Dans Xcode : ouvrez ios/App/App.xcworkspace\n' +
+          '7. Product → Clean Build Folder → ▶️ Run',
+      };
+    }
+    // Any other error means plugin IS functional (network error = plugin works)
+    return { platform, pluginAvailable: true, pluginRegistered: true };
+  }
 };
